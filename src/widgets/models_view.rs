@@ -17,7 +17,7 @@ impl ModelListState {
 
     pub fn fwd(&mut self, steps: usize) {
         let i = match self.state.selected() {
-            Some(i) => std::cmp::min(i.saturating_add(steps), self.models.len() - 1),
+            Some(i) => std::cmp::min(i.saturating_add(steps), self.models.len().saturating_sub(1)),
             None => 0,
         };
         self.state.select(Some(i));

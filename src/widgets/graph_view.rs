@@ -29,9 +29,12 @@ impl GraphViewState {
     pub fn move_selection(&mut self, steps: usize, down: bool) -> bool {
         let changed = if let Some(sel) = self.selected {
             let new_idx = if down {
-                std::cmp::min(sel.saturating_add(steps), self.indices.len() - 1)
+                std::cmp::min(
+                    sel.saturating_add(steps),
+                    self.indices.len().saturating_sub(1),
+                )
             } else {
-                std::cmp::max(sel.saturating_sub(steps), 0)
+                sel.saturating_sub(steps)
             };
             self.selected = Some(new_idx);
             new_idx != sel
@@ -49,18 +52,24 @@ impl GraphViewState {
     pub fn move_secondary_selection(&mut self, steps: usize, down: bool) -> bool {
         let changed = if let Some(sel) = self.secondary_selected {
             let new_idx = if down {
-                std::cmp::min(sel.saturating_add(steps), self.indices.len() - 1)
+                std::cmp::min(
+                    sel.saturating_add(steps),
+                    self.indices.len().saturating_sub(1),
+                )
             } else {
-                std::cmp::max(sel.saturating_sub(steps), 0)
+                sel.saturating_sub(steps)
             };
             self.secondary_selected = Some(new_idx);
             new_idx != sel
         } else if !self.graph_lines.is_empty() {
             if let Some(sel) = self.selected {
                 let new_idx = if down {
-                    std::cmp::min(sel.saturating_add(steps), self.indices.len() - 1)
+                    std::cmp::min(
+                        sel.saturating_add(steps),
+                        self.indices.len().saturating_sub(1),
+                    )
                 } else {
-                    std::cmp::max(sel.saturating_sub(steps), 0)
+                    sel.saturating_sub(steps)
                 };
                 self.secondary_selected = Some(new_idx);
                 new_idx != sel
@@ -131,7 +140,7 @@ impl StatefulWidget for GraphView<'_> {
             return;
         }
 
-        if state.graph_lines.is_empty() {
+        if state.graph_lines.is_empty() || state.indices.is_empty() {
             return;
         }
         let list_height = list_area.height as usize;
@@ -144,18 +153,23 @@ impl StatefulWidget for GraphView<'_> {
         );
         let mut end = start + height;
 
-        let selected_row = state.selected.map(|idx| state.indices[idx]);
-        let selected = selected_row.unwrap_or(0).min(state.graph_lines.len() - 1);
+        let max_graph_idx = state.graph_lines.len().saturating_sub(1);
+        let max_indices_idx = state.indices.len().saturating_sub(1);
 
-        let secondary_selected_row = state.secondary_selected.map(|idx| state.indices[idx]);
-        let secondary_selected = secondary_selected_row
-            .unwrap_or(0)
-            .min(state.graph_lines.len() - 1);
+        let selected_row = state
+            .selected
+            .and_then(|idx| state.indices.get(idx).copied());
+        let selected = selected_row.unwrap_or(0).min(max_graph_idx);
+
+        let secondary_selected_row = state
+            .secondary_selected
+            .and_then(|idx| state.indices.get(idx).copied());
+        let secondary_selected = secondary_selected_row.unwrap_or(0).min(max_graph_idx);
 
         let selected_index = if state.secondary_changed {
-            state.secondary_selected.unwrap_or(0)
+            state.secondary_selected.unwrap_or(0).min(max_indices_idx)
         } else {
-            state.selected.unwrap_or(0)
+            state.selected.unwrap_or(0).min(max_indices_idx)
         };
         let move_to_selected = if state.secondary_changed {
             secondary_selected
@@ -163,12 +177,13 @@ impl StatefulWidget for GraphView<'_> {
             selected
         };
 
-        let move_to_end = if selected_index >= state.indices.len() - 1 {
-            state.graph_lines.len() - 1
+        let move_to_end = if selected_index >= max_indices_idx {
+            max_graph_idx
         } else {
-            (state.indices[selected_index + 1] - 1)
+            state.indices[selected_index + 1]
+                .saturating_sub(1)
                 .max(move_to_selected + SCROLL_MARGIN)
-                .min(state.graph_lines.len() - 1)
+                .min(max_graph_idx)
         };
         let move_to_start = move_to_selected.saturating_sub(SCROLL_MARGIN);
 
