@@ -793,8 +793,8 @@ fn run(
 
             let mut app = None;
             if file_dialog.error_message.is_some() {
-                if let Event::Input(event) = next_event() {
-                    match event.code {
+                match next_event() {
+                    Event::Input(event) => match event.code {
                         KeyCode::Enter | KeyCode::Esc => {
                             file_dialog.clear_error();
                         }
@@ -805,61 +805,77 @@ fn run(
                             break;
                         }
                         _ => {}
+                    },
+                    Event::Update => {
+                        let now = Instant::now();
+                        if next_repo_refresh.get() <= now {
+                            next_repo_refresh.set(now + repo_refresh_interval);
+                        }
                     }
                 }
-            } else if let Event::Input(event) = next_event() {
-                match event.code {
-                    KeyCode::Char('q') => {
-                        disable_raw_mode()?;
-                        execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
-                        terminal.show_cursor()?;
-                        break;
-                    }
-                    KeyCode::Char('o') if event.modifiers.contains(KeyModifiers::CONTROL) => {
-                        if let Some(prev_app) = file_dialog.previous_app.take() {
-                            app = Some(prev_app);
-                        } else {
-                            file_dialog.set_error("No repository to return to.\nSelect a Git rrpository or quit with Q.".to_string())
+            } else {
+                match next_event() {
+                    Event::Input(event) => match event.code {
+                        KeyCode::Char('q') => {
+                            disable_raw_mode()?;
+                            execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                            terminal.show_cursor()?;
+                            break;
                         }
-                    }
-                    KeyCode::Esc => {
-                        if let Some(prev_app) = file_dialog.previous_app.take() {
-                            app = Some(prev_app);
-                        } else {
-                            file_dialog.set_error("No repository to return to.\nSelect a Git rrpository or quit with Q.".to_string())
+                        KeyCode::Char('o') if event.modifiers.contains(KeyModifiers::CONTROL) => {
+                            if let Some(prev_app) = file_dialog.previous_app.take() {
+                                app = Some(prev_app);
+                            } else {
+                                file_dialog.set_error("No repository to return to.\nSelect a Git rrpository or quit with Q.".to_string())
+                            }
                         }
-                    }
-                    KeyCode::Up => file_dialog.on_up(event.modifiers.contains(KeyModifiers::SHIFT)),
-                    KeyCode::Down => {
-                        file_dialog.on_down(event.modifiers.contains(KeyModifiers::SHIFT))
-                    }
-                    KeyCode::Left => file_dialog.on_left()?,
-                    KeyCode::Right => file_dialog.on_right()?,
-                    KeyCode::Enter => {
-                        file_dialog.on_enter();
-                        if let Some(path) = &file_dialog.selection {
-                            match get_repo(path) {
-                                Ok(repo) => {
-                                    if repo.is_shallow() {
-                                        file_dialog.set_error(format!("{} is a shallow clone. Shallow clones are not supported due to a missing feature in the underlying libgit2 library.", repo.path().parent().unwrap().display()));
-                                    } else {
-                                        app = Some(create_app(
-                                            repo,
-                                            &mut settings,
-                                            &app_settings,
-                                            model,
-                                            max_commits,
-                                        )?)
+                        KeyCode::Esc => {
+                            if let Some(prev_app) = file_dialog.previous_app.take() {
+                                app = Some(prev_app);
+                            } else {
+                                file_dialog.set_error("No repository to return to.\nSelect a Git rrpository or quit with Q.".to_string())
+                            }
+                        }
+                        KeyCode::Up => {
+                            file_dialog.on_up(event.modifiers.contains(KeyModifiers::SHIFT))
+                        }
+                        KeyCode::Down => {
+                            file_dialog.on_down(event.modifiers.contains(KeyModifiers::SHIFT))
+                        }
+                        KeyCode::Left => file_dialog.on_left()?,
+                        KeyCode::Right => file_dialog.on_right()?,
+                        KeyCode::Enter => {
+                            file_dialog.on_enter();
+                            if let Some(path) = &file_dialog.selection {
+                                match get_repo(path) {
+                                    Ok(repo) => {
+                                        if repo.is_shallow() {
+                                            file_dialog.set_error(format!("{} is a shallow clone. Shallow clones are not supported due to a missing feature in the underlying libgit2 library.", repo.path().parent().unwrap().display()));
+                                        } else {
+                                            app = Some(create_app(
+                                                repo,
+                                                &mut settings,
+                                                &app_settings,
+                                                model,
+                                                max_commits,
+                                            )?)
+                                        }
                                     }
-                                }
-                                Err(_) => {
-                                    file_dialog.on_right()?;
-                                }
-                            };
+                                    Err(_) => {
+                                        file_dialog.on_right()?;
+                                    }
+                                };
+                            }
+                        }
+                        _ => {}
+                    },
+                    Event::Update => {
+                        let now = Instant::now();
+                        if next_repo_refresh.get() <= now {
+                            next_repo_refresh.set(now + repo_refresh_interval);
                         }
                     }
-                    _ => {}
-                };
+                }
             }
             app
         };
