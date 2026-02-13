@@ -1,6 +1,6 @@
 use clap::{crate_version, Arg, Command};
 use crossterm::{
-    event::{self, Event as CEvent, KeyCode, KeyModifiers},
+    event::{self, Event as CEvent, KeyCode, KeyModifiers, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -503,7 +503,11 @@ fn run(
 
             if event::poll(timeout).unwrap() {
                 match event::read().unwrap() {
-                    CEvent::Key(key) => return Event::Input(key),
+                    CEvent::Key(key) => {
+                        if key.kind == KeyEventKind::Press || key.kind == KeyEventKind::Repeat {
+                            return Event::Input(key);
+                        }
+                    },
                     CEvent::Mouse(_) => (),
                     CEvent::Resize(sx, sy) => {
                         if sx != sx_old || sy != sy_old {
