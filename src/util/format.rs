@@ -1,5 +1,5 @@
 use git2::Commit;
-use git_graph::print::format::format_date;
+use gleisbau::print::format::format_date;
 use std::fmt::Write;
 use yansi::Paint;
 

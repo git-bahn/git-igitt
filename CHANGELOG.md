@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgrade from git-graph to gleisbau 0.7.1
+
 ### Fixed
 
 - Scroll to root commit no longer crashes if root is a fork.

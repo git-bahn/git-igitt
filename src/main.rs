@@ -5,7 +5,14 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use git2::Repository;
-use git_graph::{
+use git_igitt::app::DiffMode;
+use git_igitt::settings::AppSettings;
+use git_igitt::{
+    app::{ActiveView, App, CurrentBranches},
+    dialogs::FileDialog,
+    ui,
+};
+use gleisbau::{
     config::{create_config, get_available_models, get_model, get_model_name},
     get_repo,
     graph::GitGraph,
@@ -14,13 +21,6 @@ use git_graph::{
         BranchOrder, BranchSettings, BranchSettingsDef, Characters, MergePatterns, RepoSettings,
         Settings,
     },
-};
-use git_igitt::app::DiffMode;
-use git_igitt::settings::AppSettings;
-use git_igitt::{
-    app::{ActiveView, App, CurrentBranches},
-    dialogs::FileDialog,
-    ui,
 };
 use platform_dirs::AppDirs;
 use std::cell::Cell;
@@ -307,7 +307,7 @@ fn from_args() -> Result<(), String> {
     let dot = ".".to_string();
     let path = matches.get_one::<String>("path").unwrap_or(&dot);
 
-    let repository = get_repo(path);
+    let repository = get_repo(path, false);
 
     if let Some(matches) = matches.subcommand_matches("model") {
         match repository {
@@ -838,7 +838,7 @@ fn run(
                     KeyCode::Enter => {
                         file_dialog.on_enter();
                         if let Some(path) = &file_dialog.selection {
-                            match get_repo(path) {
+                            match get_repo(path, false) {
                                 Ok(repo) => {
                                     if repo.is_shallow() {
                                         file_dialog.set_error(format!("{} is a shallow clone. Shallow clones are not supported due to a missing feature in the underlying libgit2 library.", repo.path().parent().unwrap().display()));
@@ -986,7 +986,7 @@ fn create_app(
         .unwrap_or("unknown")
         .to_string();
 
-    let graph = GitGraph::new(repository, settings, max_commits)?;
+    let graph = GitGraph::new(repository, settings, None, max_commits)?;
     let branches = get_branches(&graph)?;
     let (graph_lines, text_lines, indices) = print_unicode(&graph, settings)?;
 

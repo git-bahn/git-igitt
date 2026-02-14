@@ -7,10 +7,11 @@ use crate::widgets::graph_view::GraphViewState;
 use crate::widgets::list::StatefulList;
 use crate::widgets::models_view::ModelListState;
 use git2::{Commit, DiffDelta, DiffFormat, DiffHunk, DiffLine, DiffOptions as GDiffOptions, Oid};
-use git_graph::config::get_available_models;
-use git_graph::graph::GitGraph;
-use git_graph::print::unicode::{format_branches, print_unicode};
-use git_graph::settings::Settings;
+use gleisbau::config::get_available_models;
+use gleisbau::graph::BranchInfo;
+use gleisbau::graph::GitGraph;
+use gleisbau::print::unicode::{format_branches, print_unicode};
+use gleisbau::settings::Settings;
 use std::fmt::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -214,7 +215,7 @@ impl App {
                 .and_then(|idx| graph.commits.get(idx))
                 .map(|info| info.oid);
             let repo = graph.take_repository();
-            let graph = GitGraph::new(repo, settings, max_commits)?;
+            let graph = GitGraph::new(repo, settings, None, max_commits)?;
             let (graph_lines, text_lines, indices) = print_unicode(&graph, settings)?;
 
             let sel_idx = sel_oid.and_then(|oid| graph.indices.get(&oid)).cloned();
@@ -1054,8 +1055,20 @@ fn get_branches(graph: &GitGraph) -> Vec<BranchItem> {
         7,
         BranchItemType::Heading,
     ));
-    for idx in &graph.branches {
-        let branch = &graph.all_branches[*idx];
+    let graph_branches: Vec<usize> = graph
+        .all_branches
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, br)| {
+            if !br.is_merged && !br.is_tag {
+                Some(idx)
+            } else {
+                None
+            }
+        })
+        .collect();
+    for idx in &graph_branches {
+        let branch: &BranchInfo = &graph.all_branches[*idx];
         if !branch.is_remote {
             branches.push(BranchItem::new(
                 branch.name.clone(),
@@ -1072,8 +1085,8 @@ fn get_branches(graph: &GitGraph) -> Vec<BranchItem> {
         7,
         BranchItemType::Heading,
     ));
-    for idx in &graph.branches {
-        let branch = &graph.all_branches[*idx];
+    for idx in &graph_branches {
+        let branch: &BranchInfo = &graph.all_branches[*idx];
         if branch.is_remote {
             branches.push(BranchItem::new(
                 branch.name.clone(),
@@ -1091,17 +1104,28 @@ fn get_branches(graph: &GitGraph) -> Vec<BranchItem> {
         BranchItemType::Heading,
     ));
 
+    fn tag_branch_idx(idx_br: (usize, &BranchInfo)) -> Option<usize> {
+        let (idx, br) = idx_br;
+        if !br.is_merged && br.is_tag {
+            Some(idx)
+        } else {
+            None
+        }
+    }
+
     let mut tags: Vec<_> = graph
-        .tags
+        .all_branches
         .iter()
+        .enumerate()
+        .filter_map(tag_branch_idx)
         .filter_map(|idx| {
-            let branch = &graph.all_branches[*idx];
+            let branch = &graph.all_branches[idx];
             if let Ok(commit) = graph.repository.find_commit(branch.target) {
                 let time = commit.time();
                 Some((
                     BranchItem::new(
                         branch.name.clone(),
-                        Some(*idx),
+                        Some(idx),
                         branch.visual.term_color,
                         BranchItemType::Tag,
                     ),

@@ -1,7 +1,7 @@
 use crate::util::ctrl_chars::CtrlChars;
 use crate::widgets::branches_view::BranchItem;
 use crate::widgets::list::StatefulList;
-use git_graph::graph::GitGraph;
+use gleisbau::graph::GitGraph;
 use std::iter::Iterator;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
