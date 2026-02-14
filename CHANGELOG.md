@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [0.1.20] - 2026-02-14
+
 ### Changed
 
 - Upgrade from git-graph to gleisbau 0.7.1
