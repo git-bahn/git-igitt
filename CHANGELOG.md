@@ -16,6 +16,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scroll to root commit no longer crashes if root is a fork.
 
 
+## [0.1.19] - 2025-11-19
+
+### Added
+
+- Add reverse order option
+- Add debug logging
+- Include synced lock file for reproducability
+
+### Changed
+
+* Refresh dependencies
+
+### Fixed
+
+- Correct panic handling to not mess up terminal
+
+
 ## [0.1.18] - 2023-01-15
 
 ### Added
