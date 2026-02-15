@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - High CPU/GPU usage in file dialog view
 - Crash with single-commit repositories
+- Doubled key inputs on Windows
 
 
 ## [0.1.20] - 2026-02-14
