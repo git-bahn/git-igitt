@@ -6,6 +6,9 @@ on:
   release:
     types: [ created ]
 
+permissions:
+  contents: write
+
 env:
   CARGO_TERM_COLOR: always
   REPO: git-igitt

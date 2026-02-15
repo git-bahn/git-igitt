@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
 - Add workflow to enforce changelog update
+- Release workflow explicitly request write permission
+
 ### Fixed
 
 - High CPU/GPU usage in file dialog view
