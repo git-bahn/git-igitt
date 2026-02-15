@@ -847,7 +847,7 @@ fn run(
                         KeyCode::Enter => {
                             file_dialog.on_enter();
                             if let Some(path) = &file_dialog.selection {
-                            match get_repo(path, false) {
+                                match get_repo(path, false) {
                                     Ok(repo) => {
                                         if repo.is_shallow() {
                                             file_dialog.set_error(format!("{} is a shallow clone. Shallow clones are not supported due to a missing feature in the underlying libgit2 library.", repo.path().parent().unwrap().display()));
