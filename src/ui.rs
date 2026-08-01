@@ -7,7 +7,6 @@ use crate::widgets::files_view::{FileList, FileListItem};
 use crate::widgets::graph_view::GraphView;
 use crate::widgets::models_view::ModelListState;
 use lazy_static::lazy_static;
-use ratatui::backend::Backend;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
@@ -20,7 +19,7 @@ lazy_static! {
     pub static ref HINT_STYLE: Style = Style::default().fg(Color::Cyan);
 }
 
-pub fn draw_open_repo<B: Backend>(f: &mut Frame<B>, dialog: &mut FileDialog) {
+pub fn draw_open_repo(f: &mut Frame, dialog: &mut FileDialog) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(4), Constraint::Min(0)].as_ref())
@@ -74,7 +73,7 @@ pub fn draw_open_repo<B: Backend>(f: &mut Frame<B>, dialog: &mut FileDialog) {
     }
 }
 
-pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+pub fn draw(f: &mut Frame, app: &mut App) {
     if let ActiveView::Help(scroll) = app.active_view {
         draw_help(f, f.area(), scroll);
         return;
@@ -182,7 +181,7 @@ fn create_title<'a>(title: &'a str, hint: &'a str, color: bool) -> Line<'a> {
     ])
 }
 
-fn draw_graph<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
+fn draw_graph(f: &mut Frame, target: Rect, app: &mut App) {
     let title = format!("Graph - {}", app.repo_name);
     let mut block = Block::default().borders(Borders::ALL).title(create_title(
         &title,
@@ -203,7 +202,7 @@ fn draw_graph<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
     f.render_stateful_widget(graph, target, &mut app.graph_state);
 }
 
-fn draw_branches<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
+fn draw_branches(f: &mut Frame, target: Rect, app: &mut App) {
     let color = app.color;
 
     let mut block = Block::default().borders(Borders::ALL).title(create_title(
@@ -247,7 +246,7 @@ fn draw_branches<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
     }
 }
 
-fn draw_commit<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
+fn draw_commit(f: &mut Frame, target: Rect, app: &mut App) {
     let mut block = Block::default().borders(Borders::ALL).title(create_title(
         "Commit",
         " <-Graph | Files-> ",
@@ -263,7 +262,7 @@ fn draw_commit<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
     f.render_stateful_widget(commit, target, &mut app.commit_state);
 }
 
-fn draw_files<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
+fn draw_files(f: &mut Frame, target: Rect, app: &mut App) {
     let color = app.color;
     if let Some(state) = &mut app.commit_state.content {
         let title = format!(
@@ -321,7 +320,7 @@ fn draw_files<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
     }
 }
 
-fn draw_diff<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
+fn draw_diff(f: &mut Frame, target: Rect, app: &mut App) {
     if let Some(state) = &app.diff_state.content {
         let title = match app.diff_options.diff_mode {
             DiffMode::Diff => format!(
@@ -487,8 +486,8 @@ fn style_diff_line<'a>(
     }
 }
 
-fn draw_models<B: Backend>(
-    f: &mut Frame<B>,
+fn draw_models(
+    f: &mut Frame,
     target: Rect,
     color: bool,
     state: &mut ModelListState,
@@ -512,7 +511,7 @@ fn draw_models<B: Backend>(
     f.render_stateful_widget(list, target, &mut state.state);
 }
 
-fn draw_help<B: Backend>(f: &mut Frame<B>, target: Rect, scroll: u16) {
+fn draw_help(f: &mut Frame, target: Rect, scroll: u16) {
     let block = Block::default()
         .borders(Borders::ALL)
         .title(" Help [back with Esc] ");
@@ -563,7 +562,7 @@ fn draw_help<B: Backend>(f: &mut Frame<B>, target: Rect, scroll: u16) {
     f.render_widget(paragraph, target);
 }
 
-fn draw_error_dialog<B: Backend>(f: &mut Frame<B>, target: Rect, error: &str, color: bool) {
+fn draw_error_dialog(f: &mut Frame, target: Rect, error: &str, color: bool) {
     let mut block = Block::default()
         .title(" Error - Press Enter to continue ")
         .borders(Borders::ALL)
@@ -580,7 +579,7 @@ fn draw_error_dialog<B: Backend>(f: &mut Frame<B>, target: Rect, error: &str, co
     f.render_widget(paragraph, area);
 }
 
-fn draw_search_dialog<B: Backend>(f: &mut Frame<B>, target: Rect, search: &Option<String>) {
+fn draw_search_dialog(f: &mut Frame, target: Rect, search: &Option<String>) {
     let block = Block::default()
         .title(" Search - Search with Enter, abort with Esc ")
         .borders(Borders::ALL)
