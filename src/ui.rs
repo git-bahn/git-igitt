@@ -24,7 +24,7 @@ pub fn draw_open_repo<B: Backend>(f: &mut Frame<B>, dialog: &mut FileDialog) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(4), Constraint::Min(0)].as_ref())
-        .split(f.size());
+        .split(f.area());
 
     let top_chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -70,13 +70,13 @@ pub fn draw_open_repo<B: Backend>(f: &mut Frame<B>, dialog: &mut FileDialog) {
     f.render_stateful_widget(list, chunks[1], &mut dialog.state);
 
     if let Some(error) = &dialog.error_message {
-        draw_error_dialog(f, f.size(), error, dialog.color);
+        draw_error_dialog(f, f.area(), error, dialog.color);
     }
 }
 
 pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     if let ActiveView::Help(scroll) = app.active_view {
-        draw_help(f, f.size(), scroll);
+        draw_help(f, f.area(), scroll);
         return;
     }
 
@@ -84,7 +84,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(1), Constraint::Min(0)].as_ref())
-            .split(f.size());
+            .split(f.area());
 
         let help = Paragraph::new("  Enter = confirm, P = permanent, Esc = abort.");
         f.render_widget(help, chunks[0]);
@@ -100,11 +100,11 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
             &app.active_view
         };
         match view {
-            ActiveView::Branches => draw_branches(f, f.size(), app),
-            ActiveView::Graph => draw_graph(f, f.size(), app),
-            ActiveView::Commit => draw_commit(f, f.size(), app),
-            ActiveView::Files => draw_files(f, f.size(), app),
-            ActiveView::Diff => draw_diff(f, f.size(), app),
+            ActiveView::Branches => draw_branches(f, f.area(), app),
+            ActiveView::Graph => draw_graph(f, f.area(), app),
+            ActiveView::Commit => draw_commit(f, f.area(), app),
+            ActiveView::Files => draw_files(f, f.area(), app),
+            ActiveView::Diff => draw_diff(f, f.area(), app),
             _ => {}
         }
     } else {
@@ -130,7 +130,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
                 ]
                 .as_ref(),
             )
-            .split(f.size());
+            .split(f.area());
 
         let chunks = Layout::default()
             .direction(base_split)
@@ -165,9 +165,9 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     }
 
     if let Some(error) = &app.error_message {
-        draw_error_dialog(f, f.size(), error, app.color);
+        draw_error_dialog(f, f.area(), error, app.color);
     } else if app.active_view == ActiveView::Search {
-        draw_search_dialog(f, f.size(), &app.search_term);
+        draw_search_dialog(f, f.area(), &app.search_term);
     }
 }
 
