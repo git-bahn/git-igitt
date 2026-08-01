@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 use ratatui::backend::Backend;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
-use ratatui::text::{Span, Spans, Text};
+use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{
     Block, BorderType, Borders, Clear, List, ListItem as TuiListItem, Paragraph, Wrap,
 };
@@ -171,8 +171,8 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     }
 }
 
-fn create_title<'a>(title: &'a str, hint: &'a str, color: bool) -> Spans<'a> {
-    Spans(vec![
+fn create_title<'a>(title: &'a str, hint: &'a str, color: bool) -> Line<'a> {
+    Line::from(vec![
         Span::raw(format!(" {} ", title)),
         if color {
             Span::styled(hint, *HINT_STYLE)

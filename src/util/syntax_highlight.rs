@@ -4,7 +4,7 @@ use syntect::highlighting::Color as SynColor;
 use syntect::highlighting::{Style, Theme, ThemeSet};
 use syntect::parsing::SyntaxSet;
 use ratatui::style::Color;
-use ratatui::text::{Span, Spans, Text};
+use ratatui::text::{Line, Span, Text};
 
 lazy_static! {
     static ref SYNTAX: Syntax = Syntax {
@@ -59,7 +59,7 @@ pub fn as_styled(lines: &'_ [Vec<(Style, String)>]) -> Text<'_> {
     let spans: Vec<_> = lines
         .iter()
         .map(|line| {
-            Spans(
+            Line::from(
                 line.iter()
                     .map(|(style, string)| {
                         Span::styled(
