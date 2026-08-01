@@ -59,7 +59,7 @@ pub fn as_styled(lines: &'_ [Vec<(Style, String)>]) -> Text<'_> {
     let spans: Vec<_> = lines
         .iter()
         .map(|line| {
-            Line::from(
+            Line::from_iter(
                 line.iter()
                     .map(|(style, string)| {
                         Span::styled(
@@ -71,7 +71,6 @@ pub fn as_styled(lines: &'_ [Vec<(Style, String)>]) -> Text<'_> {
                             )),
                         )
                     })
-                    .collect(),
             )
         })
         .collect();
