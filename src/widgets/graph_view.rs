@@ -252,7 +252,7 @@ impl StatefulWidget for GraphView<'_> {
                     if remaining_width == 0 {
                         break;
                     }
-                    let pos = buf.set_spans(x, y, &line, remaining_width);
+                    let pos = buf.set_line(x, y, &line, remaining_width);
                     let w = pos.0.saturating_sub(x);
                     x = pos.0;
                     remaining_width = remaining_width.saturating_sub(w);
