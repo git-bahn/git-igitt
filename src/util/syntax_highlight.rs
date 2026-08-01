@@ -3,8 +3,8 @@ use syntect::easy::HighlightLines;
 use syntect::highlighting::Color as SynColor;
 use syntect::highlighting::{Style, Theme, ThemeSet};
 use syntect::parsing::SyntaxSet;
-use tui::style::Color;
-use tui::text::{Span, Spans, Text};
+use ratatui::style::Color;
+use ratatui::text::{Span, Spans, Text};
 
 lazy_static! {
     static ref SYNTAX: Syntax = Syntax {

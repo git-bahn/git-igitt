@@ -1,5 +1,5 @@
-use tui::style::Style;
-use tui::text::Text;
+use ratatui::style::Style;
+use ratatui::text::Text;
 
 #[derive(Debug, Clone, Default)]
 pub struct ListState {

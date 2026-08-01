@@ -7,14 +7,14 @@ use crate::widgets::files_view::{FileList, FileListItem};
 use crate::widgets::graph_view::GraphView;
 use crate::widgets::models_view::ModelListState;
 use lazy_static::lazy_static;
-use tui::backend::Backend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Modifier, Style};
-use tui::text::{Span, Spans, Text};
-use tui::widgets::{
+use ratatui::backend::Backend;
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::style::{Color, Modifier, Style};
+use ratatui::text::{Span, Spans, Text};
+use ratatui::widgets::{
     Block, BorderType, Borders, Clear, List, ListItem as TuiListItem, Paragraph, Wrap,
 };
-use tui::Frame;
+use ratatui::Frame;
 
 lazy_static! {
     pub static ref HINT_STYLE: Style = Style::default().fg(Color::Cyan);

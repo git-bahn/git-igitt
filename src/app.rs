@@ -16,7 +16,7 @@ use gleisbau::settings::Settings;
 use std::fmt::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
-use tui::style::Color;
+use ratatui::style::Color;
 
 const HASH_COLOR: u8 = 11;
 

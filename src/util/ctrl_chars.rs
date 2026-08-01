@@ -1,8 +1,8 @@
 use std::fmt;
 
 use muncher::Muncher;
-use tui::style::{Color, Style};
-use tui::text::Text;
+use ratatui::style::{Color, Style};
+use ratatui::text::Text;
 
 #[derive(Clone, Debug, Default)]
 pub struct CtrlChunk {

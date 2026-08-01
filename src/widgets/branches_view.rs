@@ -1,9 +1,9 @@
 use crate::widgets::list::{ListItem, ListState};
-use tui::buffer::Buffer;
-use tui::layout::{Corner, Rect};
-use tui::style::Style;
-use tui::text::Span;
-use tui::widgets::{Block, StatefulWidget, Widget};
+use ratatui::buffer::Buffer;
+use ratatui::layout::{Corner, Rect};
+use ratatui::style::Style;
+use ratatui::text::Span;
+use ratatui::widgets::{Block, StatefulWidget, Widget};
 use unicode_width::UnicodeWidthStr;
 
 const SCROLL_MARGIN: usize = 2;
