@@ -64,7 +64,7 @@ pub fn as_styled(lines: &'_ [Vec<(Style, String)>]) -> Text<'_> {
                     .map(|(style, string)| {
                         Span::styled(
                             string,
-                            tui::style::Style::default().fg(Color::Rgb(
+                            ratatui::style::Style::default().fg(Color::Rgb(
                                 style.foreground.r,
                                 style.foreground.g,
                                 style.foreground.b,
