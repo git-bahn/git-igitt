@@ -314,10 +314,10 @@ fn from_args() -> Result<(), String> {
         }
     }
 
-    let dot = ".".to_string();
-    let path = matches.get_one::<String>("path").unwrap_or(&dot);
-
-    let repository = get_repo(path, false);
+    let repository = match matches.get_one::<String>("path") {
+        Some(path) => get_repo(path, false),
+        None => Repository::open_from_env(),
+    };
 
     if let Some(matches) = matches.subcommand_matches("model") {
         match repository {
