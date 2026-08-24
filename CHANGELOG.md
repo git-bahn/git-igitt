@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Added
+- Panel jump shortcuts: keys 0–3 to switch between panels.
 
+### Changed
+- Clean up formatting in `app.rs` and `ui.rs`.
 - Upgrade to gleisbau 0.7.3
 
 

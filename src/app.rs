@@ -423,6 +423,28 @@ impl App {
         }
         Ok(reload_file_diff)
     }
+
+    pub fn jump_to_panel(&mut self, panel: u8) -> Result<bool, String> {
+        let mut reload_file_diff = false;
+        let new_view = match panel {
+            0 => ActiveView::Branches,
+            1 => ActiveView::Graph,
+            2 => ActiveView::Commit,
+            3 => {
+                if let Some(commit) = &mut self.commit_state.content {
+                    if commit.diffs.state.selected.is_none() && !commit.diffs.items.is_empty() {
+                        commit.diffs.state.selected = Some(0);
+                        reload_file_diff = true;
+                    }
+                }
+                ActiveView::Files
+            }
+            _ => return Ok(false),
+        };
+        self.active_view = new_view;
+        Ok(reload_file_diff)
+    }
+
     pub fn on_left(&mut self, is_shift: bool, is_ctrl: bool) {
         if is_ctrl {
             let step = if is_shift { 15 } else { 3 };

@@ -607,6 +607,10 @@ fn run(
                             }
                             KeyCode::Char('h') => app.show_help(),
                             KeyCode::F(1) => app.show_help(),
+                            KeyCode::Char('0') => reload_file = app.jump_to_panel(0)?,
+                            KeyCode::Char('1') => reload_file = app.jump_to_panel(1)?,
+                            KeyCode::Char('2') => reload_file = app.jump_to_panel(2)?,
+                            KeyCode::Char('3') => reload_file = app.jump_to_panel(3)?,
                             KeyCode::Char('m') => match app.active_view {
                                 ActiveView::Models | ActiveView::Search | ActiveView::Help(_) => {}
                                 _ => {

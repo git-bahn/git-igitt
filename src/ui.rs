@@ -171,20 +171,44 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     }
 }
 
-fn create_title<'a>(title: &'a str, hint: &'a str, color: bool) -> Spans<'a> {
-    Spans(vec![
-        Span::raw(format!(" {} ", title)),
-        if color {
-            Span::styled(hint, *HINT_STYLE)
+fn create_title<'a>(id: &'a str, title: &'a str, hint: &'a str, color: bool) -> Spans<'a> {
+    let mut spans = Vec::new();
+
+    if !id.is_empty() {
+        let id_span = if color {
+            Span::styled(
+                format!(" {} ", id),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            )
         } else {
-            Span::raw(hint)
-        },
-    ])
+            Span::raw(format!(" {} ", id))
+        };
+        spans.push(id_span);
+    }
+
+    // Add title with a leading space only if no id was added
+    if id.is_empty() {
+        spans.push(Span::raw(format!(" {}", title)));
+    } else {
+        spans.push(Span::raw(title.to_string()));
+    }
+
+    // Add hint with a leading space
+    if color {
+        spans.push(Span::styled(format!(" {}", hint), *HINT_STYLE));
+    } else {
+        spans.push(Span::raw(format!(" {}", hint)));
+    }
+
+    Spans(spans)
 }
 
 fn draw_graph<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
     let title = format!("Graph - {}", app.repo_name);
     let mut block = Block::default().borders(Borders::ALL).title(create_title(
+        "(1)",
         &title,
         " <-Branches | Commit-> ",
         app.color,
@@ -207,6 +231,7 @@ fn draw_branches<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
     let color = app.color;
 
     let mut block = Block::default().borders(Borders::ALL).title(create_title(
+        "(0)",
         "Branches",
         " Graph-> ",
         app.color,
@@ -249,6 +274,7 @@ fn draw_branches<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
 
 fn draw_commit<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
     let mut block = Block::default().borders(Borders::ALL).title(create_title(
+        "(2)",
         "Commit",
         " <-Graph | Files-> ",
         app.color,
@@ -272,6 +298,7 @@ fn draw_files<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
             &state.oid.to_string()[..7]
         );
         let mut block = Block::default().borders(Borders::ALL).title(create_title(
+            "(3)",
             &title,
             " <-Commit | Diff-> ",
             app.color,
@@ -310,6 +337,7 @@ fn draw_files<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
         f.render_stateful_widget(list, target, &mut state.diffs.state);
     } else {
         let mut block = Block::default().borders(Borders::ALL).title(create_title(
+            "(3)",
             "Files",
             " <-Commit | Diff-> ",
             app.color,
@@ -333,6 +361,7 @@ fn draw_diff<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
             DiffMode::New => format!("Diff (new: {})", &state.oid.to_string()[..7],),
         };
         let mut block = Block::default().borders(Borders::ALL).title(create_title(
+            "",
             &title,
             " <-Files ",
             app.color,
@@ -446,6 +475,7 @@ fn draw_diff<B: Backend>(f: &mut Frame<B>, target: Rect, app: &mut App) {
         f.render_widget(paragraph, target);
     } else {
         let mut block = Block::default().borders(Borders::ALL).title(create_title(
+            "",
             "Diff",
             " <-Files ",
             app.color,
