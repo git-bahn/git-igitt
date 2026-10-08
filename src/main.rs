@@ -343,10 +343,10 @@ fn from_args() -> Result<(), String> {
         Some(str) => match str.parse::<usize>() {
             Ok(val) => Some(val),
             Err(_) => {
-                return Err(format![
+                return Err(format!(
                     "Option max-count must be a positive number, but got '{}'",
                     str
-                ])
+                ))
             }
         },
     };
@@ -355,10 +355,10 @@ fn from_args() -> Result<(), String> {
         Some(str) => match str.parse::<usize>() {
             Ok(val) => Some(val),
             Err(_) => {
-                return Err(format![
+                return Err(format!(
                     "Option tab-width must be a positive number, but got '{}'",
                     str
-                ])
+                ))
             }
         },
     };
