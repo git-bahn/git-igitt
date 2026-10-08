@@ -2,11 +2,11 @@ use crate::widgets::branches_view::BranchItem;
 use crate::widgets::list::StatefulList;
 use ansi_to_tui::IntoText as _;
 use gleisbau::graph::GitGraph;
-use std::iter::Iterator;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
 use ratatui::style::Style;
 use ratatui::widgets::{Block, StatefulWidget, Widget};
+use std::iter::Iterator;
 use unicode_width::UnicodeWidthStr;
 
 const SCROLL_MARGIN: usize = 3;

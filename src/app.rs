@@ -13,10 +13,10 @@ use gleisbau::graph::Builder as GraphBuilder;
 use gleisbau::graph::GitGraph;
 use gleisbau::print::unicode::{format_branches, print_unicode};
 use gleisbau::settings::Settings;
+use ratatui::style::Color;
 use std::fmt::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
-use ratatui::style::Color;
 
 const HASH_COLOR: u8 = 11;
 

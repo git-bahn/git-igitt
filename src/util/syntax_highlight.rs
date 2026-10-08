@@ -1,10 +1,10 @@
 use lazy_static::lazy_static;
+use ratatui::style::Color;
+use ratatui::text::{Line, Span, Text};
 use syntect::easy::HighlightLines;
 use syntect::highlighting::Color as SynColor;
 use syntect::highlighting::{Style, Theme, ThemeSet};
 use syntect::parsing::SyntaxSet;
-use ratatui::style::Color;
-use ratatui::text::{Line, Span, Text};
 
 lazy_static! {
     static ref SYNTAX: Syntax = Syntax {
