@@ -1,10 +1,10 @@
 use lazy_static::lazy_static;
+use ratatui::style::Color;
+use ratatui::text::{Line, Span, Text};
 use syntect::easy::HighlightLines;
 use syntect::highlighting::Color as SynColor;
 use syntect::highlighting::{Style, Theme, ThemeSet};
 use syntect::parsing::SyntaxSet;
-use tui::style::Color;
-use tui::text::{Span, Spans, Text};
 
 lazy_static! {
     static ref SYNTAX: Syntax = Syntax {
@@ -59,19 +59,18 @@ pub fn as_styled(lines: &'_ [Vec<(Style, String)>]) -> Text<'_> {
     let spans: Vec<_> = lines
         .iter()
         .map(|line| {
-            Spans(
+            Line::from_iter(
                 line.iter()
                     .map(|(style, string)| {
                         Span::styled(
                             string,
-                            tui::style::Style::default().fg(Color::Rgb(
+                            ratatui::style::Style::default().fg(Color::Rgb(
                                 style.foreground.r,
                                 style.foreground.g,
                                 style.foreground.b,
                             )),
                         )
                     })
-                    .collect(),
             )
         })
         .collect();

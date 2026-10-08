@@ -8,7 +8,7 @@ keywords = ["git", "graph"]
 license = "MIT"
 readme = "README.md"
 edition = "2021"
-rust-version = "1.83.0"
+rust-version = "1.88.0"
 
 [profile.release]
 opt-level = 3
@@ -24,11 +24,7 @@ default = ["crossterm"]
 [dependencies]
 git2 = { version = "0.20", default-features = false, optional = false }
 crossterm = { version = "0.29", optional = true }
-tui = { version = "0.19", default-features = false, optional = false, features = [
-	"crossterm",
-] }
 unicode-width = "0.2"
-muncher = "0.7"
 itertools = "0.14"
 clap = { version = "4.5", optional = false, features = ["cargo"] }
 platform-dirs = "0.3"
@@ -42,3 +38,5 @@ textwrap = { version = "0.16", default-features = false, optional = false, featu
 log4rs = "1.2.0"
 log = "0.4.18"
 gleisbau = { version = "0.7.3" }
+ratatui = "0.30"
+ansi-to-tui = "8.0"

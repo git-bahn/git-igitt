@@ -1,8 +1,8 @@
 use crate::app::App;
 use git2::Repository;
+use ratatui::widgets::ListState;
 use std::io::Error;
 use std::path::PathBuf;
-use tui::widgets::ListState;
 
 pub struct FileDialog<'a> {
     pub title: &'a str,

@@ -1,9 +1,9 @@
 use crate::widgets::list::ListState;
-use tui::buffer::Buffer;
-use tui::layout::{Corner, Rect};
-use tui::style::Style;
-use tui::text::Span;
-use tui::widgets::{Block, StatefulWidget, Widget};
+use ratatui::buffer::Buffer;
+use ratatui::layout::Rect;
+use ratatui::style::Style;
+use ratatui::text::Span;
+use ratatui::widgets::{Block, StatefulWidget, Widget};
 use unicode_width::UnicodeWidthStr;
 
 const SCROLL_MARGIN: usize = 2;
@@ -40,7 +40,6 @@ pub struct FileList<'a> {
     items: Vec<FileListItem<'a>>,
     /// Style used as a base style for the widget
     style: Style,
-    start_corner: Corner,
     /// Style used to render selected item
     highlight_style: Style,
     /// Symbol in front of the selected item (Shift all items to the right)
@@ -56,7 +55,6 @@ impl<'a> FileList<'a> {
             block: None,
             style: Style::default(),
             items: items.into(),
-            start_corner: Corner::TopLeft,
             highlight_style: Style::default(),
             highlight_symbol: None,
         }
@@ -79,11 +77,6 @@ impl<'a> FileList<'a> {
 
     pub fn highlight_style(mut self, style: Style) -> FileList<'a> {
         self.highlight_style = style;
-        self
-    }
-
-    pub fn start_corner(mut self, corner: Corner) -> FileList<'a> {
-        self.start_corner = corner;
         self
     }
 }
@@ -144,17 +137,8 @@ impl StatefulWidget for FileList<'_> {
             .skip(state.offset)
             .take(end - start)
         {
-            let (x, y) = match self.start_corner {
-                Corner::BottomLeft => {
-                    current_height += 1;
-                    (list_area.left(), list_area.bottom() - current_height)
-                }
-                _ => {
-                    let pos = (list_area.left(), list_area.top() + current_height);
-                    current_height += 1;
-                    pos
-                }
-            };
+            let (x, y) = (list_area.left(), list_area.top() + current_height);
+            current_height += 1;
             let area = Rect {
                 x,
                 y,

@@ -32,6 +32,7 @@ use gleisbau::{
     },
 };
 use platform_dirs::AppDirs;
+use ratatui::{backend::CrosstermBackend, Terminal};
 use std::cell::Cell;
 use std::time::Instant;
 use std::{
@@ -41,7 +42,6 @@ use std::{
     str::FromStr,
     time::Duration,
 };
-use tui::{backend::CrosstermBackend, Terminal};
 
 const REPO_CONFIG_FILE: &str = "git-graph.toml";
 const CHECK_CHANGE_RATE: u64 = 2000;

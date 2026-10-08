@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Upgrade to gleisbau 0.7.3
+- Migrate from tui 0.19 to ratatui 0.30
 
 
 ## [0.1.21] - 2026-02-15

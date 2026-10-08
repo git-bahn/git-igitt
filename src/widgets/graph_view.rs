@@ -1,12 +1,12 @@
-use crate::util::ctrl_chars::CtrlChars;
 use crate::widgets::branches_view::BranchItem;
 use crate::widgets::list::StatefulList;
+use ansi_to_tui::IntoText as _;
 use gleisbau::graph::GitGraph;
+use ratatui::buffer::Buffer;
+use ratatui::layout::Rect;
+use ratatui::style::Style;
+use ratatui::widgets::{Block, StatefulWidget, Widget};
 use std::iter::Iterator;
-use tui::buffer::Buffer;
-use tui::layout::Rect;
-use tui::style::Style;
-use tui::widgets::{Block, StatefulWidget, Widget};
 use unicode_width::UnicodeWidthStr;
 
 const SCROLL_MARGIN: usize = 3;
@@ -242,21 +242,19 @@ impl StatefulWidget for GraphView<'_> {
 
             let max_element_width = (list_area.width - (elem_x - x)) as usize;
 
-            let mut body = CtrlChars::parse(graph_item).into_text();
-            body.extend(CtrlChars::parse(&format!("  {}", text_item)).into_text());
+            let mut body = graph_item.as_bytes().into_text().unwrap_or_default();
+            body.extend(format!("  {}", text_item).as_bytes().into_text().unwrap_or_default());
 
             let mut x = elem_x;
             let mut remaining_width = max_element_width as u16;
-            for txt in body {
-                for line in txt.lines {
-                    if remaining_width == 0 {
-                        break;
-                    }
-                    let pos = buf.set_spans(x, y, &line, remaining_width);
-                    let w = pos.0.saturating_sub(x);
-                    x = pos.0;
-                    remaining_width = remaining_width.saturating_sub(w);
+            for line in body.lines {
+                if remaining_width == 0 {
+                    break;
                 }
+                let pos = buf.set_line(x, y, &line, remaining_width);
+                let w = pos.0.saturating_sub(x);
+                x = pos.0;
+                remaining_width = remaining_width.saturating_sub(w);
             }
 
             if is_selected || is_sec_selected {
