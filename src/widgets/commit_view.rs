@@ -1,6 +1,6 @@
 use crate::app::DiffType;
-use crate::util::ctrl_chars::CtrlChars;
 use crate::widgets::list::{ListItem, StatefulList};
+use ansi_to_tui::IntoText as _;
 use git2::Oid;
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
@@ -124,19 +124,17 @@ impl StatefulWidget for CommitView<'_> {
                         let mut x = x_start;
                         let mut remaining_width = max_element_width;
 
-                        let line_span = CtrlChars::parse(line).into_text();
+                        let txt = line.as_bytes().into_text().unwrap_or_default();
                         if y >= y0 as i32 {
-                            for txt in line_span {
-                                for line in txt.lines {
-                                    if remaining_width == 0 {
-                                        break;
-                                    }
-                                    let pos = buf.set_line(x, y as u16, &line, remaining_width);
-                                    let w = pos.0.saturating_sub(x);
-                                    x = pos.0;
-                                    y = pos.1 as i32;
-                                    remaining_width = remaining_width.saturating_sub(w);
+                            for line in txt.lines {
+                                if remaining_width == 0 {
+                                    break;
                                 }
+                                let pos = buf.set_line(x, y as u16, &line, remaining_width);
+                                let w = pos.0.saturating_sub(x);
+                                x = pos.0;
+                                y = pos.1 as i32;
+                                remaining_width = remaining_width.saturating_sub(w);
                             }
                         }
                         y += 1;
