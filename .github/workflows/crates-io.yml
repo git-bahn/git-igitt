@@ -15,10 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+        uses: dtolnay/rust-toolchain@stable
       - name: Publish binaries
         uses: katyo/publish-crates@v1
         with:
