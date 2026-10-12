@@ -114,7 +114,8 @@ impl<T: ListItem> StatefulList<T> {
         match self.state.selected() {
             Some(i) => {
                 if i < self.items.len() - 1 {
-                    for (idx, item) in self.items.iter().enumerate().skip(i + 1) {
+                    for (idx, item) in self.items.iter().enumerate().skip(i + 1)
+                    {
                         if item.is_selectable() {
                             self.state.select(Some(idx));
                             return true;

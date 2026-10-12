@@ -17,7 +17,10 @@ use clap::{crate_version, Arg, Command};
 use crossterm::{
     event::{self, Event as CEvent, KeyCode, KeyEventKind, KeyModifiers},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{
+        disable_raw_mode, enable_raw_mode, EnterAlternateScreen,
+        LeaveAlternateScreen,
+    },
 };
 use git2::Repository;
 use gleisbau::{
@@ -27,8 +30,8 @@ use gleisbau::{
     graph::GitGraph,
     print::{format::CommitFormat, unicode::print_unicode},
     settings::{
-        BranchOrder, BranchSettings, BranchSettingsDef, Characters, MergePatterns, RepoSettings,
-        Settings,
+        BranchOrder, BranchSettings, BranchSettingsDef, Characters,
+        MergePatterns, RepoSettings, Settings,
     },
 };
 use platform_dirs::AppDirs;
@@ -108,7 +111,10 @@ fn setup_logger(log_level: &str) {
     // Log Trace level output to file where trace is the default level
     // and the programmatically specified level to stderr.
     let config = log4rs::Config::builder()
-        .appender(log4rs::config::Appender::builder().build("logfile", Box::new(logfile)))
+        .appender(
+            log4rs::config::Appender::builder()
+                .build("logfile", Box::new(logfile)),
+        )
         .build(
             log4rs::config::Root::builder()
                 .appender("logfile")
@@ -426,7 +432,8 @@ fn from_args() -> Result<(), String> {
         wrapping: None,
         characters: style,
         branch_order: BranchOrder::ShortestFirst(true),
-        branches: BranchSettings::from(BranchSettingsDef::none()).map_err(|err| err.to_string())?,
+        branches: BranchSettings::from(BranchSettingsDef::none())
+            .map_err(|err| err.to_string())?,
         merge_patterns: MergePatterns::default(),
     };
 
@@ -460,8 +467,8 @@ fn run(
 
     let repo_refresh_interval = Duration::from_millis(CHECK_CHANGE_RATE);
 
-    let mut file_dialog =
-        FileDialog::new("Open repository", settings.colored).map_err(|err| err.to_string())?;
+    let mut file_dialog = FileDialog::new("Open repository", settings.colored)
+        .map_err(|err| err.to_string())?;
     if let Some(repo) = &repository {
         if repo.is_shallow() {
             file_dialog.set_error(format!("{} is a shallow clone. Shallow clones are not supported due to a missing feature in the underlying libgit2 library.", repo.path().parent().unwrap().display()));
@@ -511,12 +518,15 @@ fn run(
                 next_event_time = next.min(next_event_time)
             }
 
-            let timeout = next_event_time.saturating_duration_since(Instant::now());
+            let timeout =
+                next_event_time.saturating_duration_since(Instant::now());
 
             if event::poll(timeout).unwrap() {
                 match event::read().unwrap() {
                     CEvent::Key(key) => {
-                        if key.kind == KeyEventKind::Press || key.kind == KeyEventKind::Repeat {
+                        if key.kind == KeyEventKind::Press
+                            || key.kind == KeyEventKind::Repeat
+                        {
                             return Event::Input(key);
                         }
                     }
@@ -555,7 +565,10 @@ fn run(
                         }
                         KeyCode::Char('q') => {
                             disable_raw_mode()?;
-                            execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                            execute!(
+                                terminal.backend_mut(),
+                                LeaveAlternateScreen
+                            )?;
                             terminal.show_cursor()?;
                             break;
                         }
@@ -572,10 +585,13 @@ fn run(
                         KeyCode::Char(c) => app.character_entered(c),
                         KeyCode::Esc => reload_file = app.on_esc()?,
                         KeyCode::Enter | KeyCode::F(3) => {
-                            reload_diffs =
-                                app.on_enter(event.modifiers.contains(KeyModifiers::CONTROL))?
+                            reload_diffs = app.on_enter(
+                                event.modifiers.contains(KeyModifiers::CONTROL),
+                            )?
                         }
-                        KeyCode::Backspace => reload_diffs = app.on_backspace()?,
+                        KeyCode::Backspace => {
+                            reload_diffs = app.on_backspace()?
+                        }
                         _ => {}
                     }
                 }
@@ -584,9 +600,12 @@ fn run(
                     Event::Input(event) => {
                         let now = Instant::now();
                         if event.code == last_key {
-                            let duration =
-                                (now.saturating_duration_since(last_key_time)).as_millis();
-                            if duration < key_repeat_time && 2 * duration > MIN_KEY_REPEAT_TIME {
+                            let duration = (now
+                                .saturating_duration_since(last_key_time))
+                            .as_millis();
+                            if duration < key_repeat_time
+                                && 2 * duration > MIN_KEY_REPEAT_TIME
+                            {
                                 key_repeat_time = duration;
                             }
                         } else {
@@ -597,7 +616,10 @@ fn run(
                         match event.code {
                             KeyCode::Char('q') => {
                                 disable_raw_mode()?;
-                                execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                                execute!(
+                                    terminal.backend_mut(),
+                                    LeaveAlternateScreen
+                                )?;
                                 terminal.show_cursor()?;
                                 break;
                             }
@@ -608,51 +630,78 @@ fn run(
                             KeyCode::Char('h') => app.show_help(),
                             KeyCode::F(1) => app.show_help(),
                             KeyCode::Char('m') => match app.active_view {
-                                ActiveView::Models | ActiveView::Search | ActiveView::Help(_) => {}
+                                ActiveView::Models
+                                | ActiveView::Search
+                                | ActiveView::Help(_) => {}
                                 _ => {
                                     if let Err(err) = app.select_model() {
                                         app.set_error(err);
                                     }
                                 }
                             },
-                            KeyCode::Char('r') => app = app.reload(&settings, max_commits)?,
+                            KeyCode::Char('r') => {
+                                app = app.reload(&settings, max_commits)?
+                            }
                             KeyCode::Char('l') => {
-                                if event.modifiers.contains(KeyModifiers::CONTROL) {
+                                if event
+                                    .modifiers
+                                    .contains(KeyModifiers::CONTROL)
+                                {
                                     app.toggle_line_numbers()?;
                                 } else {
                                     app.toggle_layout();
                                 }
                             }
                             KeyCode::Char('w') => {
-                                if event.modifiers.contains(KeyModifiers::CONTROL) {
+                                if event
+                                    .modifiers
+                                    .contains(KeyModifiers::CONTROL)
+                                {
                                     app.toggle_line_wrap()?;
                                 }
                             }
                             KeyCode::Char('b') => app.toggle_branches(),
                             KeyCode::Char('o') => match app.active_view {
-                                ActiveView::Models | ActiveView::Search | ActiveView::Help(_) => {}
+                                ActiveView::Models
+                                | ActiveView::Search
+                                | ActiveView::Help(_) => {}
                                 _ => {
-                                    if event.modifiers.contains(KeyModifiers::CONTROL) {
-                                        if let Some(graph) = &app.graph_state.graph {
+                                    if event
+                                        .modifiers
+                                        .contains(KeyModifiers::CONTROL)
+                                    {
+                                        if let Some(graph) =
+                                            &app.graph_state.graph
+                                        {
                                             let path = graph.repository.path();
-                                            let path = path.parent().unwrap_or(path);
+                                            let path =
+                                                path.parent().unwrap_or(path);
                                             file_dialog.location =
-                                                PathBuf::from(path.parent().unwrap_or(path));
-                                            file_dialog.selection = Some(PathBuf::from(path));
+                                                PathBuf::from(
+                                                    path.parent()
+                                                        .unwrap_or(path),
+                                                );
+                                            file_dialog.selection =
+                                                Some(PathBuf::from(path));
                                         } else {
-                                            file_dialog.location = std::env::current_dir()?;
+                                            file_dialog.location =
+                                                std::env::current_dir()?;
                                             file_dialog.selection = None
                                         }
                                         open_file = true;
                                     } else {
-                                        let reset = app.diff_options.diff_mode == DiffMode::Diff;
-                                        reload_file = app.set_diff_mode(DiffMode::Old)?;
+                                        let reset = app.diff_options.diff_mode
+                                            == DiffMode::Diff;
+                                        reload_file =
+                                            app.set_diff_mode(DiffMode::Old)?;
                                         reset_scroll = reset;
                                     }
                                 }
                             },
                             KeyCode::Char('f')
-                                if event.modifiers.contains(KeyModifiers::CONTROL) =>
+                                if event
+                                    .modifiers
+                                    .contains(KeyModifiers::CONTROL) =>
                             {
                                 match app.active_view {
                                     ActiveView::Models
@@ -662,7 +711,9 @@ fn run(
                                 }
                             }
                             KeyCode::F(3) => match app.active_view {
-                                ActiveView::Models | ActiveView::Search | ActiveView::Help(_) => {}
+                                ActiveView::Models
+                                | ActiveView::Search
+                                | ActiveView::Help(_) => {}
                                 _ => {
                                     if app.search_term.is_none() {
                                         app.open_search();
@@ -672,17 +723,24 @@ fn run(
                                 }
                             },
                             KeyCode::Char('n') => {
-                                let reset = app.diff_options.diff_mode == DiffMode::Diff;
-                                reload_file = app.set_diff_mode(DiffMode::New)?;
+                                let reset = app.diff_options.diff_mode
+                                    == DiffMode::Diff;
+                                reload_file =
+                                    app.set_diff_mode(DiffMode::New)?;
                                 reset_scroll = reset;
                             }
                             KeyCode::Char('d') => {
-                                reload_file = app.set_diff_mode(DiffMode::Diff)?;
+                                reload_file =
+                                    app.set_diff_mode(DiffMode::Diff)?;
                             }
                             KeyCode::Char('p') => {
                                 if app.active_view == ActiveView::Models {
-                                    let (a, s, result) =
-                                        set_app_model(app, settings, max_commits, true)?;
+                                    let (a, s, result) = set_app_model(
+                                        app,
+                                        settings,
+                                        max_commits,
+                                        true,
+                                    )?;
                                     app = a;
                                     settings = s;
                                     if let Err(err) = result {
@@ -703,16 +761,24 @@ fn run(
 
                             KeyCode::Up => {
                                 let (rd, rf) = app.on_up(
-                                    event.modifiers.contains(KeyModifiers::SHIFT),
-                                    event.modifiers.contains(KeyModifiers::CONTROL),
+                                    event
+                                        .modifiers
+                                        .contains(KeyModifiers::SHIFT),
+                                    event
+                                        .modifiers
+                                        .contains(KeyModifiers::CONTROL),
                                 )?;
                                 reload_diffs = rd;
                                 reload_file = rf;
                             }
                             KeyCode::Down => {
                                 let (rd, rf) = app.on_down(
-                                    event.modifiers.contains(KeyModifiers::SHIFT),
-                                    event.modifiers.contains(KeyModifiers::CONTROL),
+                                    event
+                                        .modifiers
+                                        .contains(KeyModifiers::SHIFT),
+                                    event
+                                        .modifiers
+                                        .contains(KeyModifiers::CONTROL),
                                 )?;
                                 reload_diffs = rd;
                                 reload_file = rf;
@@ -725,16 +791,24 @@ fn run(
                             ),
                             KeyCode::Right => {
                                 reload_file = app.on_right(
-                                    event.modifiers.contains(KeyModifiers::SHIFT),
-                                    event.modifiers.contains(KeyModifiers::CONTROL),
+                                    event
+                                        .modifiers
+                                        .contains(KeyModifiers::SHIFT),
+                                    event
+                                        .modifiers
+                                        .contains(KeyModifiers::CONTROL),
                                 )?
                             }
                             KeyCode::Tab => app.on_tab(),
                             KeyCode::Esc => reload_file = app.on_esc()?,
                             KeyCode::Enter => {
                                 if app.active_view == ActiveView::Models {
-                                    let (a, s, result) =
-                                        set_app_model(app, settings, max_commits, true)?;
+                                    let (a, s, result) = set_app_model(
+                                        app,
+                                        settings,
+                                        max_commits,
+                                        true,
+                                    )?;
                                     app = a;
                                     settings = s;
                                     if let Err(err) = result {
@@ -742,8 +816,11 @@ fn run(
                                         app.active_view = ActiveView::Graph;
                                     }
                                 } else {
-                                    reload_diffs = app
-                                        .on_enter(event.modifiers.contains(KeyModifiers::CONTROL))?
+                                    reload_diffs = app.on_enter(
+                                        event
+                                            .modifiers
+                                            .contains(KeyModifiers::CONTROL),
+                                    )?
                                 }
                             }
                             KeyCode::Backspace => {
@@ -757,7 +834,9 @@ fn run(
                     Event::Update => {
                         let now = Instant::now();
                         if next_repo_refresh.get() <= now {
-                            if app.graph_state.graph.is_some() && has_changed(&mut app)? {
+                            if app.graph_state.graph.is_some()
+                                && has_changed(&mut app)?
+                            {
                                 app = app.reload(&settings, max_commits)?;
                             }
                             next_repo_refresh.set(now + repo_refresh_interval);
@@ -780,7 +859,8 @@ fn run(
             if reload_diffs {
                 app.reload_diff_message()?;
                 next_diff_update.set(Some(
-                    Instant::now() + Duration::from_millis(2 * key_repeat_time as u64),
+                    Instant::now()
+                        + Duration::from_millis(2 * key_repeat_time as u64),
                 ));
             }
             if reload_file {
@@ -789,7 +869,8 @@ fn run(
                 }
                 reset_diff_scroll = reset_scroll;
                 next_file_update.set(Some(
-                    Instant::now() + Duration::from_millis(2 * key_repeat_time as u64),
+                    Instant::now()
+                        + Duration::from_millis(2 * key_repeat_time as u64),
                 ));
             }
 
@@ -817,7 +898,10 @@ fn run(
                         }
                         KeyCode::Char('q') => {
                             disable_raw_mode()?;
-                            execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                            execute!(
+                                terminal.backend_mut(),
+                                LeaveAlternateScreen
+                            )?;
                             terminal.show_cursor()?;
                             break;
                         }
@@ -835,30 +919,41 @@ fn run(
                     Event::Input(event) => match event.code {
                         KeyCode::Char('q') => {
                             disable_raw_mode()?;
-                            execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+                            execute!(
+                                terminal.backend_mut(),
+                                LeaveAlternateScreen
+                            )?;
                             terminal.show_cursor()?;
                             break;
                         }
-                        KeyCode::Char('o') if event.modifiers.contains(KeyModifiers::CONTROL) => {
-                            if let Some(prev_app) = file_dialog.previous_app.take() {
+                        KeyCode::Char('o')
+                            if event
+                                .modifiers
+                                .contains(KeyModifiers::CONTROL) =>
+                        {
+                            if let Some(prev_app) =
+                                file_dialog.previous_app.take()
+                            {
                                 app = Some(prev_app);
                             } else {
                                 file_dialog.set_error("No repository to return to.\nSelect a Git rrpository or quit with Q.".to_string())
                             }
                         }
                         KeyCode::Esc => {
-                            if let Some(prev_app) = file_dialog.previous_app.take() {
+                            if let Some(prev_app) =
+                                file_dialog.previous_app.take()
+                            {
                                 app = Some(prev_app);
                             } else {
                                 file_dialog.set_error("No repository to return to.\nSelect a Git rrpository or quit with Q.".to_string())
                             }
                         }
-                        KeyCode::Up => {
-                            file_dialog.on_up(event.modifiers.contains(KeyModifiers::SHIFT))
-                        }
-                        KeyCode::Down => {
-                            file_dialog.on_down(event.modifiers.contains(KeyModifiers::SHIFT))
-                        }
+                        KeyCode::Up => file_dialog.on_up(
+                            event.modifiers.contains(KeyModifiers::SHIFT),
+                        ),
+                        KeyCode::Down => file_dialog.on_down(
+                            event.modifiers.contains(KeyModifiers::SHIFT),
+                        ),
                         KeyCode::Left => file_dialog.on_left()?,
                         KeyCode::Right => file_dialog.on_right()?,
                         KeyCode::Enter => {
@@ -907,9 +1002,12 @@ fn set_app_model(
     max_commits: Option<usize>,
     permanent: bool,
 ) -> Result<(App, Settings, Result<(), String>), String> {
-    if let (Some(state), Some(graph)) = (&app.models_state, &app.graph_state.graph) {
+    if let (Some(state), Some(graph)) =
+        (&app.models_state, &app.graph_state.graph)
+    {
         if let Some(sel) = state.state.selected() {
-            let app_dir = AppDirs::new(Some("git-graph"), false).unwrap().config_dir;
+            let app_dir =
+                AppDirs::new(Some("git-graph"), false).unwrap().config_dir;
             let mut models_dir = app_dir;
             models_dir.push("models");
 
@@ -927,14 +1025,21 @@ fn set_app_model(
                     return Ok((
                         app,
                         settings,
-                        Err(format!("Unable to load model '{}'.\n{}", temp_model, err)),
+                        Err(format!(
+                            "Unable to load model '{}'.\n{}",
+                            temp_model, err
+                        )),
                     ))
                 }
             };
 
             if permanent {
-                if let Err(err) = set_model(&graph.repository, model, REPO_CONFIG_FILE, &models_dir)
-                {
+                if let Err(err) = set_model(
+                    &graph.repository,
+                    model,
+                    REPO_CONFIG_FILE,
+                    &models_dir,
+                ) {
                     return Ok((app, settings, Err(err)));
                 }
             }
@@ -947,7 +1052,10 @@ fn set_app_model(
                     return Ok((
                         app,
                         settings,
-                        Err(format!("Unable to parse model '{}'.\n{}", temp_model, err)),
+                        Err(format!(
+                            "Unable to parse model '{}'.\n{}",
+                            temp_model, err
+                        )),
                     ))
                 }
             };
@@ -1006,8 +1114,10 @@ fn create_app(
     let mut models_dir = app_dir;
     models_dir.push("models");
 
-    let the_model = get_model(&repository, model, REPO_CONFIG_FILE, &models_dir)?;
-    settings.branches = BranchSettings::from(the_model).map_err(|err| err.to_string())?;
+    let the_model =
+        get_model(&repository, model, REPO_CONFIG_FILE, &models_dir)?;
+    settings.branches =
+        BranchSettings::from(the_model).map_err(|err| err.to_string())?;
 
     let name = &repository
         .path()
@@ -1059,7 +1169,8 @@ fn has_changed(app: &mut App) -> Result<bool, String> {
         let name = head.name().ok_or_else(|| "No name for HEAD".to_string())?;
         let name = if name == "HEAD" { name } else { &name[11..] };
         if graph.head.name != name
-            || graph.head.oid != head.target().ok_or_else(|| "No id for HEAD".to_string())?
+            || graph.head.oid
+                != head.target().ok_or_else(|| "No id for HEAD".to_string())?
             || graph.head.is_branch != head.is_branch()
         {
             return Ok(true);

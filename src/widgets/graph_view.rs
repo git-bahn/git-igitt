@@ -50,7 +50,11 @@ impl GraphViewState {
         }
         changed
     }
-    pub fn move_secondary_selection(&mut self, steps: usize, down: bool) -> bool {
+    pub fn move_secondary_selection(
+        &mut self,
+        steps: usize,
+        down: bool,
+    ) -> bool {
         let changed = if let Some(sel) = self.secondary_selected {
             let new_idx = if down {
                 std::cmp::min(
@@ -167,7 +171,8 @@ impl StatefulWidget for GraphView<'_> {
         let secondary_selected_row = state
             .secondary_selected
             .and_then(|idx| state.indices.get(idx).copied());
-        let secondary_selected = secondary_selected_row.unwrap_or(0).min(max_graph_idx);
+        let secondary_selected =
+            secondary_selected_row.unwrap_or(0).min(max_graph_idx);
 
         let selected_index = if state.secondary_changed {
             state.secondary_selected.unwrap_or(0).min(max_indices_idx)
@@ -203,7 +208,8 @@ impl StatefulWidget for GraphView<'_> {
         state.offset = start;
 
         let highlight_symbol = self.highlight_symbol.unwrap_or("");
-        let secondary_highlight_symbol = self.secondary_highlight_symbol.unwrap_or("");
+        let secondary_highlight_symbol =
+            self.secondary_highlight_symbol.unwrap_or("");
 
         let blank_symbol = " ".repeat(highlight_symbol.width());
 
@@ -217,10 +223,12 @@ impl StatefulWidget for GraphView<'_> {
             .take(end - start)
             .enumerate()
         {
-            let (x, y) = (list_area.left(), list_area.top() + current_height as u16);
+            let (x, y) =
+                (list_area.left(), list_area.top() + current_height as u16);
 
             let is_selected = selected_row.map(|s| s == i).unwrap_or(false);
-            let is_sec_selected = secondary_selected_row.map(|s| s == i).unwrap_or(false);
+            let is_sec_selected =
+                secondary_selected_row.map(|s| s == i).unwrap_or(false);
             let elem_x = {
                 let symbol = if is_selected {
                     highlight_symbol
@@ -229,7 +237,13 @@ impl StatefulWidget for GraphView<'_> {
                 } else {
                     &blank_symbol
                 };
-                let (x, _) = buf.set_stringn(x, y, symbol, list_area.width as usize, style);
+                let (x, _) = buf.set_stringn(
+                    x,
+                    y,
+                    symbol,
+                    list_area.width as usize,
+                    style,
+                );
                 x
             };
 
@@ -242,8 +256,14 @@ impl StatefulWidget for GraphView<'_> {
 
             let max_element_width = (list_area.width - (elem_x - x)) as usize;
 
-            let mut body = graph_item.as_bytes().into_text().unwrap_or_default();
-            body.extend(format!("  {}", text_item).as_bytes().into_text().unwrap_or_default());
+            let mut body =
+                graph_item.as_bytes().into_text().unwrap_or_default();
+            body.extend(
+                format!("  {}", text_item)
+                    .as_bytes()
+                    .into_text()
+                    .unwrap_or_default(),
+            );
 
             let mut x = elem_x;
             let mut remaining_width = max_element_width as u16;
@@ -263,9 +283,11 @@ impl StatefulWidget for GraphView<'_> {
         }
 
         let scroll_start = list_area.top() as usize
-            + (((list_height * start) as f32 / state.graph_lines.len() as f32).ceil() as usize)
+            + (((list_height * start) as f32 / state.graph_lines.len() as f32)
+                .ceil() as usize)
                 .min(list_height - 1);
-        let scroll_height = (((list_height * list_height) as f32 / state.graph_lines.len() as f32)
+        let scroll_height = (((list_height * list_height) as f32
+            / state.graph_lines.len() as f32)
             .floor() as usize)
             .clamp(1, list_height);
 

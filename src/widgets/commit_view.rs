@@ -65,7 +65,10 @@ impl<'a> CommitView<'a> {
         self
     }
 
-    pub fn highlight_symbol(mut self, highlight_symbol: &'a str) -> CommitView<'a> {
+    pub fn highlight_symbol(
+        mut self,
+        highlight_symbol: &'a str,
+    ) -> CommitView<'a> {
         self.highlight_symbol = Some(highlight_symbol);
         self
     }
@@ -97,8 +100,8 @@ impl StatefulWidget for CommitView<'_> {
             let scroll = commit_info.scroll;
             let y_start = y0 as i32 - scroll as i32;
 
-            let wrapping =
-                textwrap::Options::new(list_area.width as usize).subsequent_indent("        ");
+            let wrapping = textwrap::Options::new(list_area.width as usize)
+                .subsequent_indent("        ");
             let ellipsis = &format!(
                 "    ...{}",
                 " ".repeat(max_element_width.saturating_sub(7) as usize)
@@ -109,7 +112,12 @@ impl StatefulWidget for CommitView<'_> {
                 if text_line.is_empty() {
                     y += 1;
                     if y >= list_bottom as i32 {
-                        buf.set_string(x_start, (y - 1) as u16, ellipsis, self.style);
+                        buf.set_string(
+                            x_start,
+                            (y - 1) as u16,
+                            ellipsis,
+                            self.style,
+                        );
                         break;
                     }
                 } else {
@@ -124,17 +132,24 @@ impl StatefulWidget for CommitView<'_> {
                         let mut x = x_start;
                         let mut remaining_width = max_element_width;
 
-                        let txt = line.as_bytes().into_text().unwrap_or_default();
+                        let txt =
+                            line.as_bytes().into_text().unwrap_or_default();
                         if y >= y0 as i32 {
                             for line in txt.lines {
                                 if remaining_width == 0 {
                                     break;
                                 }
-                                let pos = buf.set_line(x, y as u16, &line, remaining_width);
+                                let pos = buf.set_line(
+                                    x,
+                                    y as u16,
+                                    &line,
+                                    remaining_width,
+                                );
                                 let w = pos.0.saturating_sub(x);
                                 x = pos.0;
                                 y = pos.1 as i32;
-                                remaining_width = remaining_width.saturating_sub(w);
+                                remaining_width =
+                                    remaining_width.saturating_sub(w);
                             }
                         }
                         y += 1;
@@ -143,7 +158,12 @@ impl StatefulWidget for CommitView<'_> {
                         }
                     }
                     if y >= list_bottom as i32 {
-                        buf.set_string(x_start, (y - 1) as u16, ellipsis, self.style);
+                        buf.set_string(
+                            x_start,
+                            (y - 1) as u16,
+                            ellipsis,
+                            self.style,
+                        );
                         break;
                     }
                 }

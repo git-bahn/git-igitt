@@ -21,7 +21,8 @@ struct Syntax {
 
 fn create_custom_theme() -> Theme {
     let mut theme = SYNTAX.themes.themes["Solarized (dark)"].clone();
-    theme.settings.foreground = theme.settings.foreground.map(|color| brighter(color, 0.4)); //Some(syntect::highlighting::Color::WHITE);
+    theme.settings.foreground =
+        theme.settings.foreground.map(|color| brighter(color, 0.4)); //Some(syntect::highlighting::Color::WHITE);
     theme
 }
 
@@ -34,7 +35,10 @@ fn brighter(color: SynColor, factor: f32) -> SynColor {
     }
 }
 
-pub fn highlight(lines: &str, extension: &str) -> Option<Vec<Vec<(Style, String)>>> {
+pub fn highlight(
+    lines: &str,
+    extension: &str,
+) -> Option<Vec<Vec<(Style, String)>>> {
     let syntax = SYNTAX.syntax.find_syntax_by_extension(extension)?;
 
     let mut h = HighlightLines::new(syntax, &THEME);
@@ -59,19 +63,16 @@ pub fn as_styled(lines: &'_ [Vec<(Style, String)>]) -> Text<'_> {
     let spans: Vec<_> = lines
         .iter()
         .map(|line| {
-            Line::from_iter(
-                line.iter()
-                    .map(|(style, string)| {
-                        Span::styled(
-                            string,
-                            ratatui::style::Style::default().fg(Color::Rgb(
-                                style.foreground.r,
-                                style.foreground.g,
-                                style.foreground.b,
-                            )),
-                        )
-                    })
-            )
+            Line::from_iter(line.iter().map(|(style, string)| {
+                Span::styled(
+                    string,
+                    ratatui::style::Style::default().fg(Color::Rgb(
+                        style.foreground.r,
+                        style.foreground.g,
+                        style.foreground.b,
+                    )),
+                )
+            }))
         })
         .collect();
 

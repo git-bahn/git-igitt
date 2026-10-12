@@ -11,7 +11,8 @@ use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{
-    Block, BorderType, Borders, Clear, List, ListItem as TuiListItem, Paragraph, Wrap,
+    Block, BorderType, Borders, Clear, List, ListItem as TuiListItem,
+    Paragraph, Wrap,
 };
 use ratatui::Frame;
 
@@ -32,10 +33,13 @@ pub fn draw_open_repo(f: &mut Frame, dialog: &mut FileDialog) {
 
     let location_block = Block::default().borders(Borders::ALL).title(" Path ");
 
-    let paragraph = Paragraph::new(format!("{}", dialog.location.display())).block(location_block);
+    let paragraph = Paragraph::new(format!("{}", dialog.location.display()))
+        .block(location_block);
     f.render_widget(paragraph, top_chunks[0]);
 
-    let help = Paragraph::new("  Navigate with Arrows, confirm with Enter, abort with Esc.");
+    let help = Paragraph::new(
+        "  Navigate with Arrows, confirm with Enter, abort with Esc.",
+    );
     f.render_widget(help, top_chunks[1]);
 
     let list_block = Block::default()
@@ -48,7 +52,8 @@ pub fn draw_open_repo(f: &mut Frame, dialog: &mut FileDialog) {
         .map(|f| {
             if dialog.color {
                 if f.1 {
-                    TuiListItem::new(&f.0[..]).style(Style::default().fg(Color::LightGreen))
+                    TuiListItem::new(&f.0[..])
+                        .style(Style::default().fg(Color::LightGreen))
                 } else {
                     TuiListItem::new(&f.0[..])
                 }
@@ -63,7 +68,9 @@ pub fn draw_open_repo(f: &mut Frame, dialog: &mut FileDialog) {
     let mut list = List::new(items).block(list_block).highlight_symbol("> ");
 
     if dialog.color {
-        list = list.highlight_style(Style::default().add_modifier(Modifier::UNDERLINED));
+        list = list.highlight_style(
+            Style::default().add_modifier(Modifier::UNDERLINED),
+        );
     }
 
     f.render_stateful_widget(list, chunks[1], &mut dialog.state);
@@ -79,13 +86,16 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         return;
     }
 
-    if let (ActiveView::Models, Some(model_state)) = (&app.active_view, &mut app.models_state) {
+    if let (ActiveView::Models, Some(model_state)) =
+        (&app.active_view, &mut app.models_state)
+    {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(1), Constraint::Min(0)].as_ref())
             .split(f.area());
 
-        let help = Paragraph::new("  Enter = confirm, P = permanent, Esc = abort.");
+        let help =
+            Paragraph::new("  Enter = confirm, P = permanent, Esc = abort.");
         f.render_widget(help, chunks[0]);
 
         draw_models(f, chunks[1], app.color, model_state);
@@ -118,7 +128,8 @@ pub fn draw(f: &mut Frame, app: &mut App) {
             Direction::Horizontal
         };
 
-        let show_branches = app.show_branches || app.active_view == ActiveView::Branches;
+        let show_branches =
+            app.show_branches || app.active_view == ActiveView::Branches;
 
         let top_chunks = Layout::default()
             .direction(Direction::Horizontal)
@@ -133,26 +144,36 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 
         let chunks = Layout::default()
             .direction(base_split)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .constraints(
+                [Constraint::Percentage(50), Constraint::Percentage(50)]
+                    .as_ref(),
+            )
             .split(top_chunks[1]);
 
         let right_chunks = Layout::default()
             .direction(sub_split)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .constraints(
+                [Constraint::Percentage(50), Constraint::Percentage(50)]
+                    .as_ref(),
+            )
             .split(chunks[1]);
 
         match app.active_view {
             ActiveView::Search => {
                 if let Some(prev) = &app.prev_active_view {
                     match prev {
-                        ActiveView::Files | ActiveView::Diff => draw_diff(f, chunks[0], app),
+                        ActiveView::Files | ActiveView::Diff => {
+                            draw_diff(f, chunks[0], app)
+                        }
                         _ => draw_graph(f, chunks[0], app),
                     }
                 } else {
                     draw_graph(f, chunks[0], app)
                 }
             }
-            ActiveView::Files | ActiveView::Diff => draw_diff(f, chunks[0], app),
+            ActiveView::Files | ActiveView::Diff => {
+                draw_diff(f, chunks[0], app)
+            }
             _ => draw_graph(f, chunks[0], app),
         }
 
@@ -193,10 +214,13 @@ fn draw_graph(f: &mut Frame, target: Rect, app: &mut App) {
         block = block.border_type(BorderType::Thick);
     }
 
-    let mut graph = GraphView::default().block(block).highlight_symbol(">", "#");
+    let mut graph =
+        GraphView::default().block(block).highlight_symbol(">", "#");
 
     if app.color {
-        graph = graph.highlight_style(Style::default().add_modifier(Modifier::UNDERLINED));
+        graph = graph.highlight_style(
+            Style::default().add_modifier(Modifier::UNDERLINED),
+        );
     }
 
     f.render_stateful_widget(graph, target, &mut app.graph_state);
@@ -222,7 +246,10 @@ fn draw_branches(f: &mut Frame, target: Rect, app: &mut App) {
             .map(|item| {
                 BranchListItem::new(
                     if color {
-                        Span::styled(&item.name, Style::default().fg(Color::Indexed(item.color)))
+                        Span::styled(
+                            &item.name,
+                            Style::default().fg(Color::Indexed(item.color)),
+                        )
                     } else {
                         Span::raw(&item.name)
                     },
@@ -231,10 +258,13 @@ fn draw_branches(f: &mut Frame, target: Rect, app: &mut App) {
             })
             .collect();
 
-        let mut list = BranchList::new(items).block(block).highlight_symbol("> ");
+        let mut list =
+            BranchList::new(items).block(block).highlight_symbol("> ");
 
         if color {
-            list = list.highlight_style(Style::default().add_modifier(Modifier::UNDERLINED));
+            list = list.highlight_style(
+                Style::default().add_modifier(Modifier::UNDERLINED),
+            );
         }
 
         f.render_stateful_widget(list, target, &mut state.state);
@@ -270,11 +300,9 @@ fn draw_files(f: &mut Frame, target: Rect, app: &mut App) {
             &state.compare_oid.to_string()[..7],
             &state.oid.to_string()[..7]
         );
-        let mut block = Block::default().borders(Borders::ALL).title(create_title(
-            &title,
-            " <-Commit | Diff-> ",
-            app.color,
-        ));
+        let mut block = Block::default()
+            .borders(Borders::ALL)
+            .title(create_title(&title, " <-Commit | Diff-> ", app.color));
 
         if app.active_view == ActiveView::Files {
             block = block.border_type(BorderType::Thick);
@@ -303,16 +331,16 @@ fn draw_files(f: &mut Frame, target: Rect, app: &mut App) {
         let mut list = FileList::new(items).block(block).highlight_symbol("> ");
 
         if color {
-            list = list.highlight_style(Style::default().add_modifier(Modifier::UNDERLINED));
+            list = list.highlight_style(
+                Style::default().add_modifier(Modifier::UNDERLINED),
+            );
         }
 
         f.render_stateful_widget(list, target, &mut state.diffs.state);
     } else {
-        let mut block = Block::default().borders(Borders::ALL).title(create_title(
-            "Files",
-            " <-Commit | Diff-> ",
-            app.color,
-        ));
+        let mut block = Block::default()
+            .borders(Borders::ALL)
+            .title(create_title("Files", " <-Commit | Diff-> ", app.color));
         if app.active_view == ActiveView::Files {
             block = block.border_type(BorderType::Thick);
         }
@@ -328,14 +356,16 @@ fn draw_diff(f: &mut Frame, target: Rect, app: &mut App) {
                 &state.compare_oid.to_string()[..7],
                 &state.oid.to_string()[..7]
             ),
-            DiffMode::Old => format!("Diff (old: {})", &state.compare_oid.to_string()[..7],),
-            DiffMode::New => format!("Diff (new: {})", &state.oid.to_string()[..7],),
+            DiffMode::Old => {
+                format!("Diff (old: {})", &state.compare_oid.to_string()[..7],)
+            }
+            DiffMode::New => {
+                format!("Diff (new: {})", &state.oid.to_string()[..7],)
+            }
         };
-        let mut block = Block::default().borders(Borders::ALL).title(create_title(
-            &title,
-            " <-Files ",
-            app.color,
-        ));
+        let mut block = Block::default()
+            .borders(Borders::ALL)
+            .title(create_title(&title, " <-Files ", app.color));
         if app.active_view == ActiveView::Diff {
             block = block.border_type(BorderType::Thick);
         }
@@ -370,11 +400,16 @@ fn draw_diff(f: &mut Frame, target: Rect, app: &mut App) {
                         }
                     }
 
-                    let space_old_ln =
-                        std::cmp::max(3, (max_old_ln.unwrap_or(0) as f32).log10().ceil() as usize);
-                    let space_new_ln =
-                        std::cmp::max(3, (max_new_ln.unwrap_or(0) as f32).log10().ceil() as usize)
-                            + 1;
+                    let space_old_ln = std::cmp::max(
+                        3,
+                        (max_old_ln.unwrap_or(0) as f32).log10().ceil()
+                            as usize,
+                    );
+                    let space_new_ln = std::cmp::max(
+                        3,
+                        (max_new_ln.unwrap_or(0) as f32).log10().ceil()
+                            as usize,
+                    ) + 1;
 
                     (
                         space_old_ln,
@@ -397,7 +432,9 @@ fn draw_diff(f: &mut Frame, target: Rect, app: &mut App) {
                     line
                 };
 
-                if app.diff_options.line_numbers && (old_ln.is_some() || new_ln.is_some()) {
+                if app.diff_options.line_numbers
+                    && (old_ln.is_some() || new_ln.is_some())
+                {
                     let l1 = old_ln
                         .map(|v| format!("{:>width$}", v, width = space_old_ln))
                         .unwrap_or_else(|| empty_old_ln.clone());
@@ -406,14 +443,24 @@ fn draw_diff(f: &mut Frame, target: Rect, app: &mut App) {
                         .unwrap_or_else(|| empty_new_ln.clone());
                     let fmt = format!("{}{}|", l1, l2);
 
-                    text.extend(style_diff_line(Some(fmt), ln, &styles, app.color));
+                    text.extend(style_diff_line(
+                        Some(fmt),
+                        ln,
+                        &styles,
+                        app.color,
+                    ));
                 } else {
                     text.extend(style_diff_line(None, ln, &styles, app.color));
                 }
             }
         } else {
             if !state.diffs.is_empty() {
-                text.extend(style_diff_line(None, &state.diffs[0].0, &styles, false));
+                text.extend(style_diff_line(
+                    None,
+                    &state.diffs[0].0,
+                    &styles,
+                    false,
+                ));
             }
             if !state.diffs.len() > 1 {
                 if let Some(txt) = &state.highlighted {
@@ -427,7 +474,8 @@ fn draw_diff(f: &mut Frame, target: Rect, app: &mut App) {
                             if trim.is_empty() {
                                 text.extend(Text::raw("\n"));
                             } else {
-                                let styled = style_diff_line(None, trim, &styles, false);
+                                let styled =
+                                    style_diff_line(None, trim, &styles, false);
                                 text.extend(styled);
                             }
                         }
@@ -436,7 +484,8 @@ fn draw_diff(f: &mut Frame, target: Rect, app: &mut App) {
             }
         }
 
-        let mut paragraph = Paragraph::new(text).block(block).scroll(state.scroll);
+        let mut paragraph =
+            Paragraph::new(text).block(block).scroll(state.scroll);
 
         if app.diff_options.wrap_lines {
             paragraph = paragraph.wrap(Wrap { trim: false });
@@ -444,11 +493,9 @@ fn draw_diff(f: &mut Frame, target: Rect, app: &mut App) {
 
         f.render_widget(paragraph, target);
     } else {
-        let mut block = Block::default().borders(Borders::ALL).title(create_title(
-            "Diff",
-            " <-Files ",
-            app.color,
-        ));
+        let mut block = Block::default()
+            .borders(Borders::ALL)
+            .title(create_title("Diff", " <-Files ", app.color));
         if app.active_view == ActiveView::Diff {
             block = block.border_type(BorderType::Thick);
         }
@@ -505,7 +552,9 @@ fn draw_models(
     let mut list = List::new(items).block(block).highlight_symbol("> ");
 
     if color {
-        list = list.highlight_style(Style::default().add_modifier(Modifier::UNDERLINED));
+        list = list.highlight_style(
+            Style::default().add_modifier(Modifier::UNDERLINED),
+        );
     }
 
     f.render_stateful_widget(list, target, &mut state.state);
@@ -572,7 +621,8 @@ fn draw_error_dialog(f: &mut Frame, target: Rect, error: &str, color: bool) {
         block = block.border_style(Style::default().fg(Color::LightRed));
     }
 
-    let paragraph = Paragraph::new(error).block(block).wrap(Wrap { trim: true });
+    let paragraph =
+        Paragraph::new(error).block(block).wrap(Wrap { trim: true });
 
     let area = centered_rect(60, 12, target);
     f.render_widget(Clear, area);

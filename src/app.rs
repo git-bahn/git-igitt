@@ -6,7 +6,10 @@ use crate::widgets::diff_view::{DiffViewInfo, DiffViewState};
 use crate::widgets::graph_view::GraphViewState;
 use crate::widgets::list::StatefulList;
 use crate::widgets::models_view::ModelListState;
-use git2::{Commit, DiffDelta, DiffFormat, DiffHunk, DiffLine, DiffOptions as GDiffOptions, Oid};
+use git2::{
+    Commit, DiffDelta, DiffFormat, DiffHunk, DiffLine,
+    DiffOptions as GDiffOptions, Oid,
+};
 use gleisbau::config::get_available_models;
 use gleisbau::graph::BranchInfo;
 use gleisbau::graph::Builder as GraphBuilder;
@@ -190,7 +193,10 @@ impl App {
         Ok(self)
     }
 
-    pub fn with_branches(mut self, branches: Vec<(Option<String>, Option<Oid>)>) -> App {
+    pub fn with_branches(
+        mut self,
+        branches: Vec<(Option<String>, Option<Oid>)>,
+    ) -> App {
         self.curr_branches = branches;
         self
     }
@@ -231,10 +237,12 @@ impl App {
                 builder = builder.with_max_count(max_commits);
             }
             let graph = builder.build()?;
-            let (graph_lines, text_lines, indices) = print_unicode(&graph, settings)?;
+            let (graph_lines, text_lines, indices) =
+                print_unicode(&graph, settings)?;
 
-            let sel_idx =
-                sel_oid.and_then(|oid| graph.tracks.lock().unwrap().indices.get(&oid).cloned());
+            let sel_idx = sel_oid.and_then(|oid| {
+                graph.tracks.lock().unwrap().indices.get(&oid).cloned()
+            });
             let old_idx = self.graph_state.selected;
             self.graph_state.selected = sel_idx;
             if sel_idx.is_some() != old_idx.is_some() {
@@ -247,13 +255,19 @@ impl App {
         }
     }
 
-    pub fn on_up(&mut self, is_shift: bool, is_ctrl: bool) -> Result<(bool, bool), String> {
+    pub fn on_up(
+        &mut self,
+        is_shift: bool,
+        is_ctrl: bool,
+    ) -> Result<(bool, bool), String> {
         let step = if is_shift { 10 } else { 1 };
         match self.active_view {
             ActiveView::Graph => {
                 if is_ctrl {
                     if self.graph_state.move_secondary_selection(step, false) {
-                        if self.graph_state.secondary_selected == self.graph_state.selected {
+                        if self.graph_state.secondary_selected
+                            == self.graph_state.selected
+                        {
                             self.graph_state.secondary_selected = None;
                         }
                         return Ok((true, false));
@@ -268,7 +282,8 @@ impl App {
                 }
             }
             ActiveView::Help(scroll) => {
-                self.active_view = ActiveView::Help(scroll.saturating_sub(step as u16))
+                self.active_view =
+                    ActiveView::Help(scroll.saturating_sub(step as u16))
             }
             ActiveView::Commit => {
                 if let Some(content) = &mut self.commit_state.content {
@@ -298,13 +313,19 @@ impl App {
         Ok((false, false))
     }
 
-    pub fn on_down(&mut self, is_shift: bool, is_ctrl: bool) -> Result<(bool, bool), String> {
+    pub fn on_down(
+        &mut self,
+        is_shift: bool,
+        is_ctrl: bool,
+    ) -> Result<(bool, bool), String> {
         let step = if is_shift { 10 } else { 1 };
         match self.active_view {
             ActiveView::Graph => {
                 if is_ctrl {
                     if self.graph_state.move_secondary_selection(step, true) {
-                        if self.graph_state.secondary_selected == self.graph_state.selected {
+                        if self.graph_state.secondary_selected
+                            == self.graph_state.selected
+                        {
                             self.graph_state.secondary_selected = None;
                         }
                         return Ok((true, false));
@@ -319,7 +340,8 @@ impl App {
                 }
             }
             ActiveView::Help(scroll) => {
-                self.active_view = ActiveView::Help(scroll.saturating_add(step as u16))
+                self.active_view =
+                    ActiveView::Help(scroll.saturating_add(step as u16))
             }
             ActiveView::Commit => {
                 if let Some(content) = &mut self.commit_state.content {
@@ -352,7 +374,9 @@ impl App {
     pub fn on_home(&mut self) -> Result<bool, String> {
         if let ActiveView::Graph = self.active_view {
             if let Some(graph) = &self.graph_state.graph {
-                if let Some(index) = graph.tracks.lock().unwrap().indices.get(&graph.head.oid) {
+                if let Some(index) =
+                    graph.tracks.lock().unwrap().indices.get(&graph.head.oid)
+                {
                     self.graph_state.selected = Some(*index);
                     return Ok(true);
                 } else if !self.graph_state.graph_lines.is_empty() {
@@ -367,14 +391,19 @@ impl App {
     pub fn on_end(&mut self) -> Result<bool, String> {
         if let ActiveView::Graph = self.active_view {
             if !self.graph_state.indices.is_empty() {
-                self.graph_state.selected = Some(self.graph_state.indices.len() - 1);
+                self.graph_state.selected =
+                    Some(self.graph_state.indices.len() - 1);
                 return Ok(true);
             }
         }
         Ok(false)
     }
 
-    pub fn on_right(&mut self, is_shift: bool, is_ctrl: bool) -> Result<bool, String> {
+    pub fn on_right(
+        &mut self,
+        is_shift: bool,
+        is_ctrl: bool,
+    ) -> Result<bool, String> {
         let mut reload_file_diff = false;
         if is_ctrl {
             let step = if is_shift { 15 } else { 3 };
@@ -389,8 +418,11 @@ impl App {
                 }
                 ActiveView::Files => {
                     if let Some(content) = &mut self.commit_state.content {
-                        content.diffs.state.scroll_x =
-                            content.diffs.state.scroll_x.saturating_add(step as u16);
+                        content.diffs.state.scroll_x = content
+                            .diffs
+                            .state
+                            .scroll_x
+                            .saturating_add(step as u16);
                     }
                 }
                 ActiveView::Branches => {
@@ -407,7 +439,9 @@ impl App {
                 ActiveView::Graph => ActiveView::Commit,
                 ActiveView::Commit => {
                     if let Some(commit) = &mut self.commit_state.content {
-                        if commit.diffs.state.selected.is_none() && !commit.diffs.items.is_empty() {
+                        if commit.diffs.state.selected.is_none()
+                            && !commit.diffs.items.is_empty()
+                        {
                             commit.diffs.state.selected = Some(0);
                             reload_file_diff = true;
                         }
@@ -416,7 +450,9 @@ impl App {
                 }
                 ActiveView::Files => ActiveView::Diff,
                 ActiveView::Diff => ActiveView::Diff,
-                ActiveView::Help(_) => self.prev_active_view.take().unwrap_or(ActiveView::Graph),
+                ActiveView::Help(_) => {
+                    self.prev_active_view.take().unwrap_or(ActiveView::Graph)
+                }
                 ActiveView::Models => ActiveView::Models,
                 ActiveView::Search => ActiveView::Search,
             }
@@ -437,8 +473,11 @@ impl App {
                 }
                 ActiveView::Files => {
                     if let Some(content) = &mut self.commit_state.content {
-                        content.diffs.state.scroll_x =
-                            content.diffs.state.scroll_x.saturating_sub(step as u16);
+                        content.diffs.state.scroll_x = content
+                            .diffs
+                            .state
+                            .scroll_x
+                            .saturating_sub(step as u16);
                     }
                 }
                 ActiveView::Branches => {
@@ -456,7 +495,9 @@ impl App {
                 ActiveView::Commit => ActiveView::Graph,
                 ActiveView::Files => ActiveView::Commit,
                 ActiveView::Diff => ActiveView::Files,
-                ActiveView::Help(_) => self.prev_active_view.take().unwrap_or(ActiveView::Graph),
+                ActiveView::Help(_) => {
+                    self.prev_active_view.take().unwrap_or(ActiveView::Graph)
+                }
                 ActiveView::Models => ActiveView::Models,
                 ActiveView::Search => ActiveView::Search,
             }
@@ -466,10 +507,12 @@ impl App {
     pub fn on_enter(&mut self, is_control: bool) -> Result<bool, String> {
         match &self.active_view {
             ActiveView::Help(_) => {
-                self.active_view = self.prev_active_view.take().unwrap_or(ActiveView::Graph)
+                self.active_view =
+                    self.prev_active_view.take().unwrap_or(ActiveView::Graph)
             }
             ActiveView::Search => {
-                self.active_view = self.prev_active_view.take().unwrap_or(ActiveView::Graph);
+                self.active_view =
+                    self.prev_active_view.take().unwrap_or(ActiveView::Graph);
                 self.search()?;
             }
             ActiveView::Branches => {
@@ -478,20 +521,27 @@ impl App {
                         if let Some(sel) = state.state.selected() {
                             let br = &state.items[sel];
                             if let Some(index) = br.index {
-                                let branch_info = &graph.tracks.lock().unwrap().all_branches[index];
+                                let branch_info =
+                                    &graph.tracks.lock().unwrap().all_branches
+                                        [index];
                                 let commit_idx =
-                                    graph.tracks.lock().unwrap().indices[&branch_info.target];
+                                    graph.tracks.lock().unwrap().indices
+                                        [&branch_info.target];
                                 if is_control {
                                     if self.graph_state.selected.is_some() {
-                                        self.graph_state.secondary_selected = Some(commit_idx);
-                                        self.graph_state.secondary_changed = true;
+                                        self.graph_state.secondary_selected =
+                                            Some(commit_idx);
+                                        self.graph_state.secondary_changed =
+                                            true;
                                         if self.is_fullscreen {
-                                            self.active_view = ActiveView::Graph;
+                                            self.active_view =
+                                                ActiveView::Graph;
                                         }
                                         return Ok(true);
                                     }
                                 } else {
-                                    self.graph_state.selected = Some(commit_idx);
+                                    self.graph_state.selected =
+                                        Some(commit_idx);
                                     self.graph_state.secondary_changed = false;
                                     if self.is_fullscreen {
                                         self.active_view = ActiveView::Graph;
@@ -533,16 +583,22 @@ impl App {
     }
 
     pub fn on_plus(&mut self) -> Result<bool, String> {
-        if self.active_view == ActiveView::Diff || self.active_view == ActiveView::Files {
-            self.diff_options.context_lines = self.diff_options.context_lines.saturating_add(1);
+        if self.active_view == ActiveView::Diff
+            || self.active_view == ActiveView::Files
+        {
+            self.diff_options.context_lines =
+                self.diff_options.context_lines.saturating_add(1);
             return Ok(true);
         }
         Ok(false)
     }
 
     pub fn on_minus(&mut self) -> Result<bool, String> {
-        if self.active_view == ActiveView::Diff || self.active_view == ActiveView::Files {
-            self.diff_options.context_lines = self.diff_options.context_lines.saturating_sub(1);
+        if self.active_view == ActiveView::Diff
+            || self.active_view == ActiveView::Files
+        {
+            self.diff_options.context_lines =
+                self.diff_options.context_lines.saturating_sub(1);
             return Ok(true);
         }
         Ok(false)
@@ -555,10 +611,12 @@ impl App {
     pub fn on_esc(&mut self) -> Result<bool, String> {
         match self.active_view {
             ActiveView::Models | ActiveView::Help(_) => {
-                self.active_view = self.prev_active_view.take().unwrap_or(ActiveView::Graph);
+                self.active_view =
+                    self.prev_active_view.take().unwrap_or(ActiveView::Graph);
             }
             ActiveView::Search => {
-                self.active_view = self.prev_active_view.take().unwrap_or(ActiveView::Graph);
+                self.active_view =
+                    self.prev_active_view.take().unwrap_or(ActiveView::Graph);
                 self.exit_search(true);
             }
             _ => {
@@ -603,7 +661,9 @@ impl App {
         self.active_view = ActiveView::Graph;
 
         let update = match &self.active_view {
-            ActiveView::Branches | ActiveView::Graph | ActiveView::Commit => self.search_graph()?,
+            ActiveView::Branches | ActiveView::Graph | ActiveView::Commit => {
+                self.search_graph()?
+            }
             ActiveView::Files | ActiveView::Diff => self.search_diff(),
             _ => false,
         };
@@ -613,7 +673,8 @@ impl App {
         if let Some(search) = &self.search_term {
             let term = search.to_lowercase();
 
-            let search_start = if let Some(sel_idx) = &self.graph_state.selected {
+            let search_start = if let Some(sel_idx) = &self.graph_state.selected
+            {
                 sel_idx + 1
             } else {
                 0
@@ -660,7 +721,8 @@ impl App {
 
     pub fn set_diff_mode(&mut self, mode: DiffMode) -> Result<bool, String> {
         if mode != self.diff_options.diff_mode
-            && (self.active_view == ActiveView::Diff || self.active_view == ActiveView::Files)
+            && (self.active_view == ActiveView::Diff
+                || self.active_view == ActiveView::Files)
         {
             self.diff_options.diff_mode = mode;
             return Ok(true);
@@ -669,7 +731,9 @@ impl App {
     }
 
     pub fn toggle_line_numbers(&mut self) -> Result<bool, String> {
-        if self.active_view == ActiveView::Diff || self.active_view == ActiveView::Files {
+        if self.active_view == ActiveView::Diff
+            || self.active_view == ActiveView::Files
+        {
             self.diff_options.line_numbers = !self.diff_options.line_numbers;
             return Ok(true);
         }
@@ -677,7 +741,9 @@ impl App {
     }
 
     pub fn toggle_line_wrap(&mut self) -> Result<bool, String> {
-        if self.active_view == ActiveView::Diff || self.active_view == ActiveView::Files {
+        if self.active_view == ActiveView::Diff
+            || self.active_view == ActiveView::Files
+        {
             self.diff_options.wrap_lines = !self.diff_options.wrap_lines;
             return Ok(true);
         }
@@ -685,8 +751,11 @@ impl App {
     }
 
     pub fn toggle_syntax_highlight(&mut self) -> Result<bool, String> {
-        if self.active_view == ActiveView::Diff || self.active_view == ActiveView::Files {
-            self.diff_options.syntax_highlight = !self.diff_options.syntax_highlight;
+        if self.active_view == ActiveView::Diff
+            || self.active_view == ActiveView::Files
+        {
+            self.diff_options.syntax_highlight =
+                !self.diff_options.syntax_highlight;
             return Ok(true);
         }
         Ok(false)
@@ -798,7 +867,8 @@ impl App {
         };
 
         let hash_color = if self.color { Some(HASH_COLOR) } else { None };
-        let message_fmt = crate::util::format::format(&commit, branches, hash_color);
+        let message_fmt =
+            crate::util::format::format(&commit, branches, hash_color);
 
         // 5. Update state
         self.commit_state.content = Some(CommitViewInfo::new(
@@ -833,7 +903,8 @@ impl App {
                     )
                 };
 
-                let diffs = get_diff_files(graph, compare_to.as_ref(), &commit)?;
+                let diffs =
+                    get_diff_files(graph, compare_to.as_ref(), &commit)?;
 
                 content.diffs = StatefulList::with_items(diffs)
             }
@@ -850,10 +921,11 @@ impl App {
 
     pub fn file_changed(&mut self, reset_scroll: bool) -> Result<(), String> {
         // 1. Extract core state early to reduce indentation
-        let (graph, state) = match (&self.graph_state.graph, &self.commit_state.content) {
-            (Some(g), Some(s)) => (g, s),
-            _ => return Ok(()),
-        };
+        let (graph, state) =
+            match (&self.graph_state.graph, &self.commit_state.content) {
+                (Some(g), Some(s)) => (g, s),
+                _ => return Ok(()),
+            };
 
         // 2. Resolve OIDs and selection index first to solve the borrow/lock issue
         let (commit_oid, secondary_oid, sel_index) = {
@@ -973,8 +1045,8 @@ fn get_diff_files(
 
     let mut diff_err = Ok(());
     diff.print(DiffFormat::NameStatus, |d, _h, l| {
-        let content =
-            std::str::from_utf8(l.content()).unwrap_or("Invalid UTF8 character in file name.");
+        let content = std::str::from_utf8(l.content())
+            .unwrap_or("Invalid UTF8 character in file name.");
         let tp = match DiffType::from_str(&content[..1]) {
             Ok(tp) => tp,
             Err(err) => {
@@ -1094,7 +1166,11 @@ fn get_file_diffs(
     Ok(diffs)
 }
 
-fn print_diff_line(_delta: &DiffDelta, _hunk: &Option<DiffHunk>, line: &DiffLine) -> String {
+fn print_diff_line(
+    _delta: &DiffDelta,
+    _hunk: &Option<DiffHunk>,
+    line: &DiffLine,
+) -> String {
     let mut out = String::new();
     match line.origin() {
         '+' | '-' | ' ' => write!(out, "{}", line.origin()).unwrap(),
@@ -1103,7 +1179,8 @@ fn print_diff_line(_delta: &DiffDelta, _hunk: &Option<DiffHunk>, line: &DiffLine
     write!(
         out,
         "{}",
-        std::str::from_utf8(line.content()).unwrap_or("Invalid UTF8 character.")
+        std::str::from_utf8(line.content())
+            .unwrap_or("Invalid UTF8 character.")
     )
     .unwrap();
 
@@ -1135,7 +1212,8 @@ fn get_branches(graph: &GitGraph) -> Vec<BranchItem> {
         })
         .collect();
     for idx in &graph_branches {
-        let branch: &BranchInfo = &graph.tracks.lock().unwrap().all_branches[*idx];
+        let branch: &BranchInfo =
+            &graph.tracks.lock().unwrap().all_branches[*idx];
         let branch_visual = graph.layout.track_visual(*idx).unwrap();
         if !branch.is_remote {
             branches.push(BranchItem::new(
@@ -1154,7 +1232,8 @@ fn get_branches(graph: &GitGraph) -> Vec<BranchItem> {
         BranchItemType::Heading,
     ));
     for idx in &graph_branches {
-        let branch: &BranchInfo = &graph.tracks.lock().unwrap().all_branches[*idx];
+        let branch: &BranchInfo =
+            &graph.tracks.lock().unwrap().all_branches[*idx];
         let branch_visual = graph.layout.track_visual(*idx).unwrap();
         if branch.is_remote {
             branches.push(BranchItem::new(
@@ -1205,7 +1284,12 @@ fn get_branches(graph: &GitGraph) -> Vec<BranchItem> {
             if let Ok(commit) = graph.repository.find_commit(target) {
                 let time = commit.time();
                 Some((
-                    BranchItem::new(name, Some(idx), color, BranchItemType::Tag),
+                    BranchItem::new(
+                        name,
+                        Some(idx),
+                        color,
+                        BranchItemType::Tag,
+                    ),
                     time.seconds() + (time.offset_minutes() as i64 * 60),
                 ))
             } else {

@@ -4,7 +4,11 @@ use std::fmt::Write;
 use yansi::Paint;
 
 /// Format a commit.
-pub fn format(commit: &Commit, branches: String, hash_color: Option<u8>) -> Vec<String> {
+pub fn format(
+    commit: &Commit,
+    branches: String,
+    hash_color: Option<u8>,
+) -> Vec<String> {
     let mut out_vec = vec![];
     let mut out = String::new();
 

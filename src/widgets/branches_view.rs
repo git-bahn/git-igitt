@@ -31,7 +31,10 @@ pub struct BranchListItem<'a> {
 }
 
 impl<'a> BranchListItem<'a> {
-    pub fn new<T>(content: T, item_type: &'a BranchItemType) -> BranchListItem<'a>
+    pub fn new<T>(
+        content: T,
+        item_type: &'a BranchItemType,
+    ) -> BranchListItem<'a>
     where
         T: Into<Span<'a>>,
     {
@@ -56,7 +59,12 @@ pub struct BranchItem {
 }
 
 impl BranchItem {
-    pub fn new(name: String, index: Option<usize>, color: u8, branch_type: BranchItemType) -> Self {
+    pub fn new(
+        name: String,
+        index: Option<usize>,
+        color: u8,
+        branch_type: BranchItemType,
+    ) -> Self {
         Self {
             name,
             index,
@@ -113,7 +121,10 @@ impl<'a> BranchList<'a> {
         self
     }
 
-    pub fn highlight_symbol(mut self, highlight_symbol: &'a str) -> BranchList<'a> {
+    pub fn highlight_symbol(
+        mut self,
+        highlight_symbol: &'a str,
+    ) -> BranchList<'a> {
         self.highlight_symbol = Some(highlight_symbol);
         self
     }
@@ -149,7 +160,10 @@ impl StatefulWidget for BranchList<'_> {
         let list_height = list_area.height as usize;
 
         let mut start = state.offset;
-        let height = std::cmp::min(list_height, self.items.len().saturating_sub(state.offset));
+        let height = std::cmp::min(
+            list_height,
+            self.items.len().saturating_sub(state.offset),
+        );
         let mut end = start + height;
 
         let selected = state.selected.unwrap_or(0).min(self.items.len() - 1);
@@ -199,7 +213,13 @@ impl StatefulWidget for BranchList<'_> {
                 } else {
                     &blank_symbol
                 };
-                let (x, _) = buf.set_stringn(x, y, symbol, list_area.width as usize, item_style);
+                let (x, _) = buf.set_stringn(
+                    x,
+                    y,
+                    symbol,
+                    list_area.width as usize,
+                    item_style,
+                );
                 x
             } else {
                 x
@@ -207,9 +227,13 @@ impl StatefulWidget for BranchList<'_> {
 
             let max_element_width = (list_area.width - (elem_x - x)) as usize;
 
-            if state.scroll_x > 0 && item.content.content.width() > max_element_width {
-                if item.content.content.width() - max_element_width > max_scroll {
-                    max_scroll = item.content.content.width() - max_element_width;
+            if state.scroll_x > 0
+                && item.content.content.width() > max_element_width
+            {
+                if item.content.content.width() - max_element_width > max_scroll
+                {
+                    max_scroll =
+                        item.content.content.width() - max_element_width;
                 }
 
                 let start = std::cmp::min(
@@ -218,7 +242,10 @@ impl StatefulWidget for BranchList<'_> {
                         .width()
                         .saturating_sub(max_element_width)
                         + 2,
-                    std::cmp::min(item.content.content.width(), state.scroll_x as usize + 2),
+                    std::cmp::min(
+                        item.content.content.width(),
+                        state.scroll_x as usize + 2,
+                    ),
                 );
                 let span = Span::styled(
                     format!("..{}", &item.content.content[start..]),
@@ -226,7 +253,12 @@ impl StatefulWidget for BranchList<'_> {
                 );
                 buf.set_span(elem_x, y, &span, max_element_width as u16);
             } else {
-                buf.set_span(elem_x, y, &item.content, max_element_width as u16);
+                buf.set_span(
+                    elem_x,
+                    y,
+                    &item.content,
+                    max_element_width as u16,
+                );
             }
             if is_selected {
                 buf.set_style(area, self.highlight_style);
@@ -237,10 +269,12 @@ impl StatefulWidget for BranchList<'_> {
         }
 
         let scroll_start = list_area.top() as usize
-            + (((list_height * start) as f32 / self.items.len() as f32).ceil() as usize)
+            + (((list_height * start) as f32 / self.items.len() as f32).ceil()
+                as usize)
                 .min(list_height - 1);
-        let scroll_height = (((list_height * list_height) as f32 / self.items.len() as f32).floor()
-            as usize)
+        let scroll_height = (((list_height * list_height) as f32
+            / self.items.len() as f32)
+            .floor() as usize)
             .clamp(1, list_height);
 
         if scroll_height < list_height {

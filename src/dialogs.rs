@@ -31,7 +31,10 @@ impl<'a> FileDialog<'a> {
 
     pub fn fwd(&mut self, steps: usize) {
         let i = match self.state.selected() {
-            Some(i) => std::cmp::min(i.saturating_add(steps), self.dirs.len().saturating_sub(1)),
+            Some(i) => std::cmp::min(
+                i.saturating_add(steps),
+                self.dirs.len().saturating_sub(1),
+            ),
             None => 0,
         };
         self.state.select(Some(i));
@@ -110,17 +113,21 @@ impl<'a> FileDialog<'a> {
         }
     }
 
-    pub fn selection_changed(&mut self, prev_location: Option<PathBuf>) -> Result<(), String> {
+    pub fn selection_changed(
+        &mut self,
+        prev_location: Option<PathBuf>,
+    ) -> Result<(), String> {
         self.dirs = std::fs::read_dir(&self.location)
             .map_err(|err| err.to_string())?
             .filter_map(|path| match path {
                 Ok(path) => {
                     if path.path().is_dir() {
                         let is_repo = Repository::open(path.path()).is_ok();
-                        path.path()
-                            .components()
-                            .next_back()
-                            .and_then(|c| c.as_os_str().to_str().map(|s| (s.to_string(), is_repo)))
+                        path.path().components().next_back().and_then(|c| {
+                            c.as_os_str()
+                                .to_str()
+                                .map(|s| (s.to_string(), is_repo))
+                        })
                     } else {
                         None
                     }
