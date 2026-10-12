@@ -127,6 +127,7 @@ impl<'a> BranchList<'a> {
 impl StatefulWidget for BranchList<'_> {
     type State = ListState;
 
+    #[allow(clippy::explicit_counter_loop)]
     fn render(mut self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         buf.set_style(area, self.style);
         let list_area = match self.block.take() {
