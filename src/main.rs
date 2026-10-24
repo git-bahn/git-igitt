@@ -74,10 +74,8 @@ fn chain_panic_hook() {
 
 fn main() {
     chain_panic_hook();
-    let app_result = env_from_args()
-        .map(|env| run(env)
-            .map_err(|err| err.to_string())
-        );
+    let app_result =
+        env_from_args().map(|env| run(env).map_err(|err| err.to_string()));
 
     if let Err(err) = &app_result {
         let mut sout = stdout();
@@ -137,7 +135,7 @@ fn setup_logger(log_level: &str) {
     let _handle = log4rs::init_config(config).unwrap();
 }
 
-/// Parse command line arguments, read configuration, 
+/// Parse command line arguments, read configuration,
 /// and return application environment.
 /// If command line arguments triggered a CLI command, return None
 fn env_from_args() -> Result<Option<Environment>, String> {
@@ -446,7 +444,7 @@ fn env_from_args() -> Result<Option<Environment>, String> {
         merge_patterns: MergePatterns::default(),
     };
 
-    Ok(Some(Environment{
+    Ok(Some(Environment {
         repository: repository.ok(),
         settings,
         app_settings,
@@ -472,7 +470,7 @@ fn run(env: Option<Environment>) -> Result<(), Box<dyn Error>> {
     let mut repository = env.repository;
     let mut settings = env.settings;
     let app_settings = env.app_settings;
-    let model: Option<&str> = env.model.as_ref().map(|x| x.as_str());
+    let model: Option<&str> = env.model.as_deref();
     let max_commits = env.max_commits;
 
     enable_raw_mode()?;
