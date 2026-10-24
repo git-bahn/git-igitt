@@ -521,12 +521,10 @@ impl App {
                         if let Some(sel) = state.state.selected() {
                             let br = &state.items[sel];
                             if let Some(index) = br.index {
-                                let branch_info =
-                                    &graph.tracks.lock().unwrap().all_branches
-                                        [index];
+                                let tracks = graph.tracks.lock().unwrap();
+                                let branch_info = &tracks.all_branches[index];
                                 let commit_idx =
-                                    graph.tracks.lock().unwrap().indices
-                                        [&branch_info.target];
+                                    tracks.indices[&branch_info.target];
                                 if is_control {
                                     if self.graph_state.selected.is_some() {
                                         self.graph_state.secondary_selected =
