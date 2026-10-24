@@ -74,18 +74,25 @@ fn chain_panic_hook() {
 
 fn main() {
     chain_panic_hook();
-    std::process::exit(match from_args() {
-        Ok(_) => 0,
-        Err(err) => {
-            let mut sout = stdout();
-            match execute!(sout, LeaveAlternateScreen) {
-                Ok(_) => {}
-                Err(err) => eprintln!("{}", err),
-            }
-            eprintln!("{}", err);
-            1
+    let app_result = env_from_args()
+        .map(|env| run(env)
+            .map_err(|err| err.to_string())
+        );
+
+    if let Err(err) = &app_result {
+        let mut sout = stdout();
+        match execute!(sout, LeaveAlternateScreen) {
+            Ok(_) => {}
+            Err(err) => eprintln!("{}", err),
         }
-    });
+        eprintln!("{}", err);
+    }
+
+    let exit_code = match app_result {
+        Ok(_) => 0,
+        Err(_) => 1,
+    };
+    std::process::exit(exit_code);
 }
 
 fn setup_logger(log_level: &str) {
@@ -130,8 +137,10 @@ fn setup_logger(log_level: &str) {
     let _handle = log4rs::init_config(config).unwrap();
 }
 
-/// Parse command line arguments, read configuration, and run the application.
-fn from_args() -> Result<(), String> {
+/// Parse command line arguments, read configuration, 
+/// and return application environment.
+/// If command line arguments triggered a CLI command, return None
+fn env_from_args() -> Result<Option<Environment>, String> {
     let app_dir = AppDirs::new(Some("git-graph"), false).unwrap().config_dir;
     let mut models_dir = app_dir;
     models_dir.push("models");
@@ -316,7 +325,7 @@ fn from_args() -> Result<(), String> {
                 "{}",
                 itertools::join(get_available_models(&models_dir)?, "\n")
             );
-            return Ok(());
+            return Ok(None);
         }
     }
 
@@ -338,7 +347,7 @@ fn from_args() -> Result<(), String> {
                     }
                     Some(model) => set_model(&repository, model, REPO_CONFIG_FILE, &models_dir)?,
                 };
-                return Ok(());
+                return Ok(None);
             }
             Err(err) => return Err(format!("ERROR: {}\n       Navigate into a repository before running git-graph, or use option --path", err.message())),
         }
@@ -437,26 +446,35 @@ fn from_args() -> Result<(), String> {
         merge_patterns: MergePatterns::default(),
     };
 
-    run(
-        repository.ok(),
+    Ok(Some(Environment{
+        repository: repository.ok(),
         settings,
         app_settings,
-        model.map(|x| &**x),
-        commit_limit,
-    )
-    .map_err(|err| err.to_string())?;
+        model: model.map(|x| x.to_string()),
+        max_commits: commit_limit,
+    }))
+}
 
-    Ok(())
+/// Context for running the application
+struct Environment {
+    repository: Option<Repository>,
+    settings: Settings,
+    app_settings: AppSettings,
+    model: Option<String>,
+    max_commits: Option<usize>,
 }
 
 /// Run the application
-fn run(
-    mut repository: Option<Repository>,
-    mut settings: Settings,
-    app_settings: AppSettings,
-    model: Option<&str>,
-    max_commits: Option<usize>,
-) -> Result<(), Box<dyn Error>> {
+fn run(env: Option<Environment>) -> Result<(), Box<dyn Error>> {
+    // If no environment given, return immediately
+    let Some(env) = env else { return Ok(()) };
+    // Unpack environment
+    let mut repository = env.repository;
+    let mut settings = env.settings;
+    let app_settings = env.app_settings;
+    let model: Option<&str> = env.model.as_ref().map(|x| x.as_str());
+    let max_commits = env.max_commits;
+
     enable_raw_mode()?;
 
     let mut sout = stdout();
