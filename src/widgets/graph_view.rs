@@ -152,11 +152,14 @@ impl StatefulWidget for GraphView<'_> {
         }
         let list_height = list_area.height as usize;
 
-        let mut start = state.offset;
+        // The view may have grown since the last render
+        let mut start = state
+            .offset
+            .min(state.graph_lines.len().saturating_sub(list_height));
 
         let height = std::cmp::min(
             list_height,
-            state.graph_lines.len().saturating_sub(state.offset),
+            state.graph_lines.len().saturating_sub(start),
         );
         let mut end = start + height;
 
@@ -308,5 +311,45 @@ impl Widget for GraphView<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut state = GraphViewState::default();
         StatefulWidget::render(self, area, buf, &mut state);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn state(lines: usize) -> GraphViewState {
+        GraphViewState {
+            graph_lines: (0..lines).map(|i| format!("* {}", i)).collect(),
+            text_lines: (0..lines).map(|i| format!("commit {}", i)).collect(),
+            indices: (0..lines).collect(),
+            selected: Some(lines - 1),
+            ..Default::default()
+        }
+    }
+
+    fn render(state: &mut GraphViewState, height: u16) {
+        let area = Rect::new(0, 0, 40, height);
+        let mut buf = Buffer::empty(area);
+        let widget = GraphView::default()
+            .block(Block::bordered())
+            .highlight_symbol("> ", "+ ");
+        StatefulWidget::render(widget, area, &mut buf, state);
+    }
+
+    #[test]
+    fn resize_taller_at_bottom_does_not_panic() {
+        let mut state = state(100);
+        render(&mut state, 10);
+        render(&mut state, 20);
+        assert_eq!(state.offset, 100 - 18);
+    }
+
+    #[test]
+    fn resize_taller_than_graph_resets_offset() {
+        let mut state = state(30);
+        render(&mut state, 10);
+        render(&mut state, 50);
+        assert_eq!(state.offset, 0);
     }
 }
